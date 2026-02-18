@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Devine le Drapeau</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ===================== SCREEN: WELCOME ===================== -->
+<div id="screen-welcome" class="screen active">
+  <div class="welcome-card">
+    <div class="logo">🌍</div>
+    <h1>Devine le Drapeau</h1>
+    <p class="subtitle">Testez vos connaissances sur les drapeaux des 195 pays reconnus par l'ONU.</p>
+    <button class="btn-primary" id="btn-start">Commencer →</button>
+  </div>
+</div>
+
+<!-- ===================== SCREEN: CONTINENT ===================== -->
+<div id="screen-continent" class="screen">
+  <div class="selection-wrapper">
+    <div class="selection-header">
+      <h2>Choisir une région</h2>
+      <p class="subtitle">Sélectionnez la zone géographique à explorer.</p>
+    </div>
+    <div class="continent-grid" id="continent-grid"></div>
+    <button class="btn-secondary btn-back" id="btn-back-from-continent">← Retour</button>
+  </div>
+</div>
+
+<!-- ===================== SCREEN: MODE ===================== -->
+<div id="screen-mode" class="screen">
+  <div class="selection-wrapper">
+    <div class="selection-header">
+      <div class="context-pills">
+        <span class="pill" id="mode-continent-pill"></span>
+      </div>
+      <h2>Mode de jeu</h2>
+      <p class="subtitle">Choisissez comment vous voulez jouer.</p>
+    </div>
+    <div class="mode-grid" id="mode-grid"></div>
+    <button class="btn-secondary btn-back" id="btn-back-from-mode">← Retour</button>
+  </div>
+</div>
+
+<!-- ===================== SCREEN: GAME ===================== -->
+<div id="screen-game" class="screen">
+  <div class="game-wrapper" id="game-wrapper">
+
+    <!-- Top bar -->
+    <div class="top-bar">
+      <div class="top-left">
+        <span class="mode-tag" id="game-mode-tag"></span>
+        <span id="question-counter">1 / 10</span>
+      </div>
+      <div class="score-badge">
+        <span class="score-label">Score</span>
+        <span id="score-value">0</span>
+      </div>
+      <button class="btn-icon" id="btn-quit-game" title="Quitter">✕</button>
+    </div>
+
+    <!-- Progress bar (classic / reverse / hardcore) -->
+    <div class="progress-bar-track" id="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-bar"></div>
+    </div>
+
+    <!-- Streak bar (survival) -->
+    <div class="streak-bar" id="streak-bar">
+      <span class="streak-icon">🔥</span>
+      <span id="streak-count">0</span>
+      <span class="streak-label">consécutives</span>
+      <span class="streak-record-label">Record : <strong id="streak-record-val">0</strong></span>
+    </div>
+
+    <!-- Chrono bar -->
+    <div class="chrono-wrap" id="chrono-wrap">
+      <div class="chrono-bar-track">
+        <div class="chrono-bar-fill" id="chrono-bar"></div>
+      </div>
+      <span id="chrono-time">60</span>
+    </div>
+
+    <!-- ── STANDARD QUESTION (Classic, Survival, Chrono) ── -->
+    <div id="zone-standard">
+      <div class="flag-card">
+        <div class="flag-wrap">
+          <img id="flag-img" src="" alt="Drapeau" draggable="false" />
+          <div class="flag-shimmer" id="flag-shimmer"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REVERSE QUESTION (Reverse mode) ── -->
+    <div id="zone-reverse">
+      <div class="reverse-question-card">
+        <p class="reverse-label">Quel est le drapeau de…</p>
+        <h3 id="reverse-country-name"></h3>
+      </div>
+      <div class="flag-choices-grid" id="flag-choices-grid">
+        <button class="flag-choice-btn" data-index="0"><img src="" alt="" draggable="false" /></button>
+        <button class="flag-choice-btn" data-index="1"><img src="" alt="" draggable="false" /></button>
+        <button class="flag-choice-btn" data-index="2"><img src="" alt="" draggable="false" /></button>
+        <button class="flag-choice-btn" data-index="3"><img src="" alt="" draggable="false" /></button>
+      </div>
+    </div>
+
+    <!-- ── HARDCORE INPUT ── -->
+    <div id="zone-hardcore">
+      <div class="hardcore-hint">
+        <span class="hc-label">Tapez le nom du pays</span>
+        <span class="hc-tol" id="hc-tol-badge"></span>
+      </div>
+      <div class="hardcore-input-wrap">
+        <input type="text" id="hardcore-input" class="hardcore-input"
+               placeholder="Nom du pays…" autocomplete="off" spellcheck="false" />
+        <button class="btn-submit" id="btn-hc-submit">OK</button>
+      </div>
+    </div>
+
+    <!-- Feedback banner -->
+    <div class="feedback-banner" id="feedback-banner">
+      <span id="feedback-icon"></span>
+      <span id="feedback-text"></span>
+    </div>
+
+    <!-- Answer buttons (standard modes) -->
+    <div class="answers-grid" id="answers-grid">
+      <button class="answer-btn" data-index="0"></button>
+      <button class="answer-btn" data-index="1"></button>
+      <button class="answer-btn" data-index="2"></button>
+      <button class="answer-btn" data-index="3"></button>
+    </div>
+
+    <!-- Bottom controls -->
+    <div class="bottom-controls">
+      <button class="btn-primary" id="btn-next" disabled>Suivant →</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== SCREEN: RESULTS ===================== -->
+<div id="screen-results" class="screen">
+  <div class="results-card">
+    <div id="results-emoji" class="results-emoji">🏆</div>
+    <h2 id="results-title">Partie terminée !</h2>
+    <p id="results-subtitle" class="subtitle"></p>
+
+    <!-- Score ring -->
+    <div class="score-circle" id="score-circle">
+      <svg viewBox="0 0 120 120">
+        <circle class="ring-bg"   cx="60" cy="60" r="52" />
+        <circle class="ring-fill" cx="60" cy="60" r="52" id="ring-fill" />
+      </svg>
+      <div class="score-inside">
+        <span id="final-score">0</span>
+        <span class="score-denom" id="final-total">/10</span>
+      </div>
+    </div>
+
+    <!-- Survival streak result -->
+    <div class="survival-result" id="survival-result">
+      <div class="streak-big">🔥 <span id="survival-streak">0</span></div>
+      <p class="streak-desc">réponses consécutives</p>
+      <div class="record-row">
+        <span class="record-tag">Record personnel</span>
+        <span id="survival-record-display">0</span>
+      </div>
+    </div>
+
+    <div class="results-stats" id="results-stats">
+      <div class="stat-item correct">
+        <span class="stat-icon">✓</span>
+        <span id="stat-correct">0 correctes</span>
+      </div>
+      <div class="stat-item incorrect">
+        <span class="stat-icon">✗</span>
+        <span id="stat-incorrect">0 incorrectes</span>
+      </div>
+    </div>
+
+    <!-- Chrono specific stat -->
+    <div class="chrono-result" id="chrono-result">
+      <div class="chrono-stat">
+        <span class="chrono-stat-icon">⚡</span>
+        <span id="chrono-stat-speed">— rép/min</span>
+      </div>
+      <div class="chrono-stat">
+        <span class="chrono-stat-icon">🎯</span>
+        <span id="chrono-stat-acc">— % précision</span>
+      </div>
+    </div>
+
+    <div class="new-record-badge" id="new-record-badge">🎉 Nouveau record !</div>
+
+    <div class="results-buttons">
+      <button class="btn-primary"    id="btn-play-again">Rejouer ce mode</button>
+      <button class="btn-secondary"  id="btn-change-mode">Changer de mode</button>
+      <button class="btn-secondary"  id="btn-home">Accueil</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
