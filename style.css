@@ -395,6 +395,47 @@ h2{font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
 /* ======================================================
    RESPONSIVE
 ====================================================== */
+/* ======================================================
+   LANDING PAGE (index.html)
+====================================================== */
+.home-card{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:44px 32px 36px;
+  width:100%;max-width:480px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;gap:28px;
+}
+.home-header{text-align:center}
+.home-logo{font-size:3.5rem;margin-bottom:14px;display:block;filter:drop-shadow(0 4px 16px rgba(108,99,255,.4))}
+.home-header h1{margin-bottom:10px}
+.game-picker{display:flex;flex-direction:column;gap:14px}
+.game-tile{
+  display:flex;align-items:center;gap:16px;
+  background:var(--bg-card2);border:1.5px solid var(--border);
+  border-radius:var(--r-md);padding:18px 16px;
+  text-decoration:none;color:var(--text);
+  transition:all var(--t);
+}
+.game-tile:hover{border-color:var(--accent);background:rgba(108,99,255,.08);transform:translateX(3px)}
+.game-tile-icon{font-size:2.4rem;flex-shrink:0;width:44px;text-align:center}
+.game-tile-body{flex:1;display:flex;flex-direction:column;gap:4px}
+.game-tile-name{font-size:1.05rem;font-weight:800;letter-spacing:-.01em}
+.game-tile-desc{font-size:.8rem;color:var(--muted);line-height:1.45}
+.game-tile-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.gtag{
+  font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:99px;
+  background:rgba(108,99,255,.14);border:1px solid rgba(108,99,255,.22);color:var(--accent);
+}
+.game-tile-arrow{font-size:1.5rem;color:var(--muted);flex-shrink:0;transition:var(--t)}
+.game-tile:hover .game-tile-arrow{color:var(--accent)}
+.home-footer{text-align:center;font-size:.78rem;color:var(--muted)}
+.btn-home-link{
+  display:block;text-align:center;text-decoration:none;
+  padding:11px;border-radius:var(--r-md);
+  border:1px solid var(--border);color:var(--muted);
+  font-size:.88rem;font-weight:600;transition:var(--t);margin-top:4px;
+}
+.btn-home-link:hover{border-color:var(--accent);color:var(--accent)}
+
 @media(max-width:400px){
   body{padding:8px}
   .welcome-card,.selection-wrapper,.game-wrapper,.results-card{padding:20px 14px}
