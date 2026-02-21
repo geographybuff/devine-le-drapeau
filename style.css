@@ -435,6 +435,8 @@ h2{font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
   font-size:.88rem;font-weight:600;transition:var(--t);margin-top:4px;
 }
 .btn-home-link:hover{border-color:var(--accent);color:var(--accent)}
+.btn-stats-link{display:inline-block;margin-top:10px;color:var(--accent);font-size:.85rem;font-weight:600;text-decoration:none;opacity:.75}
+.btn-stats-link:hover{opacity:1;text-decoration:underline}
 
 @media(max-width:400px){
   body{padding:8px}

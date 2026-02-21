@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mes Statistiques — Quiz Géographie</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="stats.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<div class="stats-page">
+
+  <!-- Header -->
+  <div class="stats-header">
+    <a href="index.html" class="btn-back-home">← Accueil</a>
+    <h1>📊 Mes Statistiques</h1>
+    <button id="btn-clear-history" class="btn-danger-sm" title="Effacer l'historique">🗑️</button>
+  </div>
+
+  <!-- Global summary -->
+  <div class="stats-summary" id="stats-summary"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="history">Historique</button>
+    <button class="tab" data-tab="progress">Progression</button>
+    <button class="tab" data-tab="weak">Points faibles</button>
+  </div>
+
+  <!-- ── TAB: Historique ─────────────────────────────────────── -->
+  <div class="tab-panel active" id="tab-history">
+    <div id="history-empty" class="empty-state hidden">
+      <span>😴</span>
+      <p>Aucune partie enregistrée pour l'instant.<br>Jouez pour voir votre historique !</p>
+    </div>
+    <div class="history-table-wrap" id="history-table-wrap">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Jeu</th>
+            <th>Mode</th>
+            <th>Région</th>
+            <th>Score</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody id="history-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── TAB: Progression ───────────────────────────────────── -->
+  <div class="tab-panel" id="tab-progress">
+    <div id="progress-empty" class="empty-state hidden">
+      <span>📈</span>
+      <p>Jouez au moins 2 parties pour voir votre courbe.</p>
+    </div>
+    <div class="chart-legend">
+      <span class="legend-dot flags"></span> Drapeaux
+      <span class="legend-dot capitals"></span> Capitales
+    </div>
+    <div class="chart-wrap" id="chart-wrap">
+      <svg id="progress-chart" class="progress-chart" viewBox="0 0 600 250" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <p class="chart-caption">Les 30 dernières parties par type (% de réussite)</p>
+  </div>
+
+  <!-- ── TAB: Points faibles ────────────────────────────────── -->
+  <div class="tab-panel" id="tab-weak">
+    <div class="weak-actions">
+      <button class="btn-revision" id="btn-revise-flags" disabled>🚩 Réviser drapeaux</button>
+      <button class="btn-revision" id="btn-revise-capitals" disabled>🏙️ Réviser capitales</button>
+    </div>
+    <div class="weak-tabs">
+      <button class="weak-tab active" data-game="flags">Drapeaux</button>
+      <button class="weak-tab" data-game="capitals">Capitales</button>
+    </div>
+    <div id="weak-empty" class="empty-state hidden">
+      <span>🎯</span>
+      <p>Aucun point faible détecté encore.<br>Jouez plusieurs parties pour les voir apparaître !</p>
+    </div>
+    <div id="weak-list"></div>
+  </div>
+
+</div>
+
+<script src="stats.js?v=1"></script>
+</body>
+</html>

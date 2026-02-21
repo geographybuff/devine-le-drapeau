@@ -344,6 +344,34 @@ function setRecord(continent, mode, value) {
 }
 
 // ─────────────────────────────────────────────────────────────────
+//  GAME HISTORY  (clé partagée avec capitals.js)
+// ─────────────────────────────────────────────────────────────────
+const LS_HISTORY_KEY = "dtd_history_v1";
+const MAX_HISTORY    = 100;
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(LS_HISTORY_KEY)) || []; } catch { return []; }
+}
+function saveGameHistory(entry) {
+  const h = loadHistory();
+  h.push(entry);
+  if (h.length > MAX_HISTORY) h.splice(0, h.length - MAX_HISTORY);
+  localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(h));
+}
+function getWeakCountryCodes(game) {
+  const h = loadHistory().filter(e => e.game === game);
+  const stats = {};
+  h.forEach(g => (g.questions||[]).forEach(q => {
+    if (!stats[q.code]) stats[q.code] = {correct:0, wrong:0};
+    if (q.correct) stats[q.code].correct++; else stats[q.code].wrong++;
+  }));
+  return Object.entries(stats)
+    .filter(([,v]) => v.wrong > 0)
+    .sort((a,b) => (b[1].wrong/(b[1].wrong+b[1].correct)) - (a[1].wrong/(a[1].wrong+a[1].correct)))
+    .slice(0, 30)
+    .map(([code]) => code);
+}
+
+// ─────────────────────────────────────────────────────────────────
 //  GAME STATE
 // ─────────────────────────────────────────────────────────────────
 const state = {
@@ -357,6 +385,7 @@ const state = {
   wrongAnswers:   0,
   answered:       false,
   correctCountry: null,
+  questionHistory: [],
 
   // survival
   streak:         0,
@@ -484,6 +513,7 @@ function startGame() {
   state.totalAnswered = 0;
   state.answered      = false;
   state.streak        = 0;
+  state.questionHistory = [];
   clearInterval(state.chronoInterval);
   state.chronoStarted = false;
   state.chronoLeft    = CHRONO_DURATION;
@@ -620,6 +650,7 @@ function resolveAnswer(isCorrect, correctName, closEnough = false) {
   if (state.answered) return;
   state.answered = true;
   state.totalAnswered++;
+  state.questionHistory.push({code: state.correctCountry.code, name: state.correctCountry.name, correct: isCorrect});
 
   const fb = $("feedback-banner");
 
@@ -852,6 +883,11 @@ function showResults() {
     if (isNewRec && score > 0) $("new-record-badge").classList.add("show");
   }
 
+  saveGameHistory({
+    game: "flags", mode: m, continent: state.continent,
+    score, total, date: new Date().toISOString(),
+    questions: [...state.questionHistory],
+  });
   showScreen("results");
 }
 
@@ -910,5 +946,20 @@ document.addEventListener("keydown", e => {
 // ─────────────────────────────────────────────────────────────────
 buildContinentGrid();
 buildModeGrid();
-showScreen("welcome");
+
+// ── Revision mode (lancé depuis stats.html) ──────────────────────
+const _revParam = new URLSearchParams(window.location.search).get("revision");
+if (_revParam === "flags") {
+  const _weakCodes = getWeakCountryCodes("flags");
+  if (_weakCodes.length >= 4) {
+    state.pool      = COUNTRIES.filter(c => _weakCodes.includes(c.code));
+    state.continent = "all";
+    state.mode      = "classic";
+    startGame();
+  } else {
+    showScreen("welcome");
+  }
+} else {
+  showScreen("welcome");
+}
 
