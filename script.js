@@ -269,6 +269,13 @@ const MODES = [
     desc:"Le nom du pays est affiché. Trouvez son drapeau parmi 4 propositions.",
     tags:["10 questions","4 drapeaux"],
   },
+  {
+    id:"infini",
+    name:"Infini",
+    icon:"♾️",
+    desc:"Questions sans fin jusqu'à ce que vous décidiez de rentrer. Score illimité.",
+    tags:["Sans limite","4 choix","Libre"],
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────────
@@ -456,11 +463,14 @@ function configureGameUI() {
   // Bars
   $("streak-bar").classList.toggle("show",       m === "survival");
   $("chrono-wrap").classList.toggle("show",      m === "chrono");
-  $("progress-bar-wrap").classList.toggle("hidden", m === "survival" || m === "chrono");
+  $("progress-bar-wrap").classList.toggle("hidden", m === "survival" || m === "chrono" || m === "infini");
 
   // Mode tag
   const mCfg = MODES.find(x => x.id === m);
   $("game-mode-tag").textContent = mCfg ? mCfg.icon + " " + mCfg.name : "";
+
+  // Infini home button
+  $("btn-infini-home").classList.toggle("hidden", m !== "infini");
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -479,7 +489,7 @@ function startGame() {
   state.chronoLeft    = CHRONO_DURATION;
 
   // Build session
-  const count = (state.mode === "survival" || state.mode === "chrono")
+  const count = (state.mode === "survival" || state.mode === "chrono" || state.mode === "infini")
     ? Math.min(200, state.pool.length)
     : QUESTIONS_PER_GAME;
   state.session = pickN(state.pool, count);
@@ -642,14 +652,14 @@ function resolveAnswer(isCorrect, correctName, closEnough = false) {
   }
 
   const isLimited = ["classic","hardcore","reverse"].includes(state.mode);
-  const isLast    = state.questionIndex >= QUESTIONS_PER_GAME - 1;
+  const isLast    = isLimited && state.questionIndex >= QUESTIONS_PER_GAME - 1;
 
   if (state.mode === "chrono") {
     // Auto-advance after short delay in chrono
     setTimeout(nextQuestion, 900);
   } else {
     const label = isLimited && isLast ? "Voir les résultats →" : "Suivant →";
-    $("btn-next").textContent = label;
+    $("btn-next").textContent = state.mode === "infini" ? "Suivant →" : label;
     $("btn-next").disabled = false;
   }
 }
@@ -732,7 +742,7 @@ function nextQuestion() {
     if (state.questionIndex >= QUESTIONS_PER_GAME - 1) { showResults(); return; }
   }
 
-  // Replenish session for survival/chrono if needed
+  // Replenish session for survival/chrono/infini if needed
   if (state.questionIndex >= state.session.length - 2) {
     const extra = pickN(state.pool, 20, state.session);
     state.session.push(...extra);
@@ -744,6 +754,12 @@ function nextQuestion() {
 }
 
 $("btn-next").addEventListener("click", nextQuestion);
+
+// Infini home button
+$("btn-infini-home").addEventListener("click", () => {
+  clearInterval(state.chronoInterval);
+  showResults();
+});
 
 // ─────────────────────────────────────────────────────────────────
 //  SHOW RESULTS
@@ -767,11 +783,17 @@ function showResults() {
   $("chrono-result").classList.toggle("show",      m === "chrono");
   $("new-record-badge").classList.remove("show");
 
+  // Infini: always show ring
+  if (m === "infini") $("score-circle").classList.remove("hidden");
+
   // Emoji + title
   let emoji="🏆", title="Partie terminée !";
   if (m === "survival") {
     emoji = state.streak >= 20 ? "🔥" : state.streak >= 10 ? "💪" : "💀";
     title = "Partie terminée !";
+  } else if (m === "infini") {
+    emoji = score >= 50 ? "🔥" : score >= 20 ? "🎉" : "🏆";
+    title = "Session terminée !"; 
   } else if (pct === 1) { emoji="🏆"; title="Score parfait !"; }
   else if (pct >= .8)   { emoji="🎉"; title="Excellent !"; }
   else if (pct >= .5)   { emoji="👍"; title="Pas mal !"; }
@@ -787,6 +809,7 @@ function showResults() {
     survival: `Vous avez enchaîné ${state.streak} bonne${state.streak!==1?"s":""} réponse${state.streak!==1?"s":""} !`,
     hardcore: pct>=1?"Parfait ! Aucune faute.": pct>=.5?"Bonne mémoire orthographique !":"L'écriture des pays, ça s'apprend !",
     reverse:  pct>=1?"Vous reconnaissez tous les drapeaux !": pct>=.5?"Bon œil !":"Observez mieux les drapeaux.",
+    infini:   `${score} bonne${score!==1?"s":""} réponse${score!==1?"s":""} sur ${total} question${total!==1?"s":""}. Bien joué !`,
   };
   $("results-subtitle").textContent = subtitles[m] || "";
 
@@ -801,15 +824,17 @@ function showResults() {
   // Score ring (non-survival)
   if (m !== "survival") {
     $("final-score").textContent = score;
-    $("final-total").textContent = `/${total}`;
-    $("stat-correct").textContent   = `${score} correcte${score!==1?"s":""}`;
-    $("stat-incorrect").textContent = `${total - score} incorrecte${(total-score)!==1?"s":""}`;
+    $("final-total").textContent = m === "infini" ? ` / ${total}` : `/${total}`;
+    $("stat-correct").textContent   = `${score} correcte${score!==1?"s":""}` ;
+    $("stat-incorrect").textContent = `${total - score} incorrecte${(total-score)!==1?"s":""}` ;
     const circ   = 2 * Math.PI * 52;
-    const offset = circ * (1 - pct);
+    // For infini, cap the ring fill at 100 questions for visual
+    const ringPct = m === "infini" ? Math.min(score / Math.max(total, 1), 1) : pct;
+    const offset  = circ * (1 - ringPct);
     setTimeout(() => { $("ring-fill").style.strokeDashoffset = offset; }, 100);
 
-    // Record for finite modes
-    if (["classic","hardcore","reverse"].includes(m)) {
+    // Records
+    if (["classic","hardcore","reverse","infini"].includes(m)) {
       const isNewRec = setRecord(state.continent, m, score);
       if (isNewRec && score > 0) $("new-record-badge").classList.add("show");
     }
