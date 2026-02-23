@@ -213,18 +213,71 @@ const COUNTRIES = [
   {code:"to",name:"Tonga",c:"oc"},
   {code:"tv",name:"Tuvalu",c:"oc"},
   {code:"vu",name:"Vanuatu",c:"oc"},
+
+  // ── ÉTATS DES ÉTATS-UNIS (50) ────────────────────────────
+  {code:"us-al",name:"Alabama",c:"us"},
+  {code:"us-ak",name:"Alaska",c:"us"},
+  {code:"us-az",name:"Arizona",c:"us"},
+  {code:"us-ar",name:"Arkansas",c:"us"},
+  {code:"us-ca",name:"Californie",c:"us"},
+  {code:"us-co",name:"Colorado",c:"us"},
+  {code:"us-ct",name:"Connecticut",c:"us"},
+  {code:"us-de",name:"Delaware",c:"us"},
+  {code:"us-fl",name:"Floride",c:"us"},
+  {code:"us-ga",name:"Géorgie",c:"us"},
+  {code:"us-hi",name:"Hawaï",c:"us"},
+  {code:"us-id",name:"Idaho",c:"us"},
+  {code:"us-il",name:"Illinois",c:"us"},
+  {code:"us-in",name:"Indiana",c:"us"},
+  {code:"us-ia",name:"Iowa",c:"us"},
+  {code:"us-ks",name:"Kansas",c:"us"},
+  {code:"us-ky",name:"Kentucky",c:"us"},
+  {code:"us-la",name:"Louisiane",c:"us"},
+  {code:"us-me",name:"Maine",c:"us"},
+  {code:"us-md",name:"Maryland",c:"us"},
+  {code:"us-ma",name:"Massachusetts",c:"us"},
+  {code:"us-mi",name:"Michigan",c:"us"},
+  {code:"us-mn",name:"Minnesota",c:"us"},
+  {code:"us-ms",name:"Mississippi",c:"us"},
+  {code:"us-mo",name:"Missouri",c:"us"},
+  {code:"us-mt",name:"Montana",c:"us"},
+  {code:"us-ne",name:"Nebraska",c:"us"},
+  {code:"us-nv",name:"Nevada",c:"us"},
+  {code:"us-nh",name:"New Hampshire",c:"us"},
+  {code:"us-nj",name:"New Jersey",c:"us"},
+  {code:"us-nm",name:"Nouveau-Mexique",c:"us"},
+  {code:"us-ny",name:"New York",c:"us"},
+  {code:"us-nc",name:"Caroline du Nord",c:"us"},
+  {code:"us-nd",name:"Dakota du Nord",c:"us"},
+  {code:"us-oh",name:"Ohio",c:"us"},
+  {code:"us-ok",name:"Oklahoma",c:"us"},
+  {code:"us-or",name:"Oregon",c:"us"},
+  {code:"us-pa",name:"Pennsylvanie",c:"us"},
+  {code:"us-ri",name:"Rhode Island",c:"us"},
+  {code:"us-sc",name:"Caroline du Sud",c:"us"},
+  {code:"us-sd",name:"Dakota du Sud",c:"us"},
+  {code:"us-tn",name:"Tennessee",c:"us"},
+  {code:"us-tx",name:"Texas",c:"us"},
+  {code:"us-ut",name:"Utah",c:"us"},
+  {code:"us-vt",name:"Vermont",c:"us"},
+  {code:"us-va",name:"Virginie",c:"us"},
+  {code:"us-wa",name:"Washington",c:"us"},
+  {code:"us-wv",name:"Virginie-Occidentale",c:"us"},
+  {code:"us-wi",name:"Wisconsin",c:"us"},
+  {code:"us-wy",name:"Wyoming",c:"us"},
 ];
 
 // ─────────────────────────────────────────────────────────────────
 //  CONTINENTS CONFIG
 // ─────────────────────────────────────────────────────────────────
 const CONTINENTS = [
-  {id:"all", name:"Monde entier",  icon:"🌐", color:"#6c63ff"},
-  {id:"af",  name:"Afrique",       icon:"🌍", color:"#f59e0b"},
-  {id:"am",  name:"Amériques",     icon:"🌎", color:"#22c55e"},
-  {id:"as",  name:"Asie",          icon:"🌏", color:"#3b82f6"},
-  {id:"eu",  name:"Europe",        icon:"🏰", color:"#a78bfa"},
-  {id:"oc",  name:"Océanie",       icon:"🏝️", color:"#06b6d4"},
+  {id:"all", name:"Monde entier",    icon:"🌐", color:"#6c63ff", unit:"pays"},
+  {id:"af",  name:"Afrique",         icon:"🌍", color:"#f59e0b", unit:"pays"},
+  {id:"am",  name:"Amériques",       icon:"🌎", color:"#22c55e", unit:"pays"},
+  {id:"as",  name:"Asie",            icon:"🌏", color:"#3b82f6", unit:"pays"},
+  {id:"eu",  name:"Europe",          icon:"🏰", color:"#a78bfa", unit:"pays"},
+  {id:"oc",  name:"Océanie",         icon:"🏙️", color:"#06b6d4", unit:"pays"},
+  {id:"us",  name:"États des USA",   icon:"🇺🇸", color:"#ef4444", unit:"états"},
 ];
 
 // ─────────────────────────────────────────────────────────────────
@@ -425,14 +478,16 @@ function buildContinentGrid() {
   const grid = $("continent-grid");
   grid.innerHTML = "";
   CONTINENTS.forEach(cont => {
-    const pool = cont.id === "all" ? COUNTRIES : COUNTRIES.filter(c => c.c === cont.id);
+    const pool = cont.id === "all"
+      ? COUNTRIES.filter(c => c.c !== "us")
+      : COUNTRIES.filter(c => c.c === cont.id);
     const card = document.createElement("button");
     card.className = "continent-card";
     card.dataset.id = cont.id;
     card.innerHTML = `
       <span class="continent-icon">${cont.icon}</span>
       <span class="continent-name">${cont.name}</span>
-      <span class="continent-count">${pool.length} pays</span>`;
+      <span class="continent-count">${pool.length} ${cont.unit || 'pays'}</span>`;
     card.addEventListener("click", () => selectContinent(cont.id));
     grid.appendChild(card);
   });
@@ -441,10 +496,12 @@ function buildContinentGrid() {
 function selectContinent(id) {
   state.continent = id;
   const cont = CONTINENTS.find(c => c.id === id);
-  state.pool = id === "all" ? [...COUNTRIES] : COUNTRIES.filter(c => c.c === id);
+  state.pool = id === "all"
+    ? COUNTRIES.filter(c => c.c !== "us")   // Monde entier = pays uniquement (sans États US)
+    : COUNTRIES.filter(c => c.c === id);
 
   // Update pill on mode screen
-  $("mode-continent-pill").innerHTML = `${cont.icon} ${cont.name} — ${state.pool.length} pays`;
+  $('mode-continent-pill').innerHTML = `${cont.icon} ${cont.name} — ${state.pool.length} ${cont.unit || 'pays'}`;
 
   // Highlight selected card
   document.querySelectorAll(".continent-card").forEach(c => c.classList.toggle("selected", c.dataset.id === id));
