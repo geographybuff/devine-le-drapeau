@@ -245,6 +245,19 @@ function shuffle(arr) {
 }
 
 window.startGame = function() {
+  if (Object.keys(layerByCode).length === 0) {
+    // GeoJSON pas encore chargé — attendre
+    document.querySelector('.btn-ov-primary').textContent = '⏳ Chargement de la carte…';
+    const wait = setInterval(() => {
+      if (Object.keys(layerByCode).length > 0) {
+        clearInterval(wait);
+        document.querySelector('.btn-ov-primary').textContent = 'C\'est parti ! 🚀';
+        window.startGame();
+      }
+    }, 300);
+    return;
+  }
+
   state.pool = state.continent === 'all'
     ? [...COUNTRIES]
     : COUNTRIES.filter(c => c.c === state.continent);
