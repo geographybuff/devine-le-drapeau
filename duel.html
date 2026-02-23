@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1v1 En Ligne — Quiz Géographie</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="theme.js"></script>
+  <style>
+    /* ── DUEL SPECIFIC ── */
+    .duel-card {
+      max-width: 560px;
+      width: 90%;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 2.4rem 2rem;
+      box-shadow: 0 8px 40px var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+    }
+    .duel-title {
+      font-size: 1.7rem;
+      font-weight: 800;
+      text-align: center;
+      color: var(--text-primary);
+    }
+    .duel-title span { color: var(--accent); }
+    .duel-subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: .95rem;
+      margin-top: -.6rem;
+    }
+    .duel-actions {
+      display: flex;
+      flex-direction: column;
+      gap: .8rem;
+    }
+    .btn-duel {
+      padding: .85rem 1.4rem;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: transform .15s, opacity .15s;
+    }
+    .btn-duel:active { transform: scale(.97); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { opacity: .9; }
+    .btn-secondary { background: var(--card-bg2, #e8eaf0); color: var(--text-primary); border: 2px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-back { background: none; border: none; color: var(--text-muted); font-size: .9rem; cursor: pointer; text-align: center; }
+    .btn-back:hover { color: var(--accent); }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+    .input-group label { font-size: .85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+    .input-group input {
+      padding: .75rem 1rem;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      background: var(--bg);
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color .2s;
+    }
+    .input-group input:focus { outline: none; border-color: var(--accent); }
+
+    /* lobby */
+    .lobby-players {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .player-slot {
+      flex: 1;
+      min-width: 120px;
+      background: var(--bg);
+      border-radius: 14px;
+      padding: 1rem;
+      text-align: center;
+      border: 2px solid var(--border);
+    }
+    .player-slot.me { border-color: var(--accent); }
+    .player-slot.ready { border-color: #22c55e; }
+    .player-avatar { font-size: 2rem; margin-bottom: .4rem; }
+    .player-name { font-weight: 700; color: var(--text-primary); font-size: .95rem; }
+    .player-status { font-size: .78rem; color: var(--text-muted); margin-top: .2rem; }
+
+    .room-code-box {
+      background: var(--bg);
+      border-radius: 14px;
+      padding: 1rem;
+      text-align: center;
+      border: 2px dashed var(--border);
+    }
+    .room-code-label { font-size: .78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .3rem; }
+    .room-code { font-size: 2.4rem; font-weight: 800; letter-spacing: .3em; color: var(--accent); font-family: monospace; }
+
+    /* game */
+    .duel-progress {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .82rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .progress-bar { height: 6px; border-radius: 99px; background: var(--border); overflow: hidden; margin-bottom: .2rem; }
+    .progress-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width .4s; }
+
+    .flag-container-duel { text-align: center; font-size: 5.5rem; line-height: 1; filter: drop-shadow(0 4px 12px rgba(0,0,0,.18)); }
+    .question-text-duel { text-align: center; font-size: 1.05rem; font-weight: 600; color: var(--text-primary); }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .7rem;
+    }
+    .option-btn {
+      padding: .8rem .6rem;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--bg);
+      color: var(--text-primary);
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, transform .12s;
+      font-family: inherit;
+    }
+    .option-btn:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-2px); }
+    .option-btn:disabled { cursor: default; }
+    .option-btn.correct { background: #22c55e; border-color: #22c55e; color: #fff; }
+    .option-btn.wrong { background: #ef4444; border-color: #ef4444; color: #fff; }
+    .option-btn.revealed { background: #22c55e20; border-color: #22c55e; color: var(--text-primary); }
+
+    .duel-scores {
+      display: flex;
+      gap: .8rem;
+    }
+    .score-badge {
+      flex: 1;
+      background: var(--bg);
+      border-radius: 12px;
+      padding: .6rem;
+      text-align: center;
+      border: 2px solid var(--border);
+    }
+    .score-badge.me-score { border-color: var(--accent); }
+    .score-label { font-size: .72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .score-val { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); }
+
+    .waiting-answer {
+      text-align: center;
+      font-size: .88rem;
+      color: var(--text-muted);
+      font-style: italic;
+      min-height: 1.4rem;
+    }
+    .timer-bar { height: 6px; border-radius: 99px; background: var(--border); overflow: hidden; }
+    .timer-fill { height: 100%; border-radius: 99px; background: #f59e0b; transition: width 1s linear; }
+
+    /* result */
+    .result-winner {
+      text-align: center;
+      font-size: 3rem;
+      line-height: 1;
+    }
+    .result-title { text-align: center; font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
+    .result-subtitle { text-align: center; font-size: .95rem; color: var(--text-muted); }
+    .result-scores {
+      display: flex;
+      gap: 1rem;
+    }
+    .result-score-card {
+      flex: 1;
+      background: var(--bg);
+      border-radius: 14px;
+      padding: 1rem;
+      text-align: center;
+      border: 2px solid var(--border);
+    }
+    .result-score-card.winner { border-color: #fbbf24; background: #fbbf2412; }
+    .rscore-name { font-size: .85rem; font-weight: 700; color: var(--text-muted); margin-bottom: .3rem; }
+    .rscore-val { font-size: 2rem; font-weight: 800; color: var(--text-primary); }
+
+    .screen { display: none; }
+    .screen.active { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem 1rem; }
+
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; margin-right: 5px; }
+    .status-dot.online { background: #22c55e; }
+    .status-dot.waiting { background: #f59e0b; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .error-msg { color: #ef4444; font-size: .85rem; text-align: center; min-height: 1.2rem; font-weight: 500; }
+  </style>
+</head>
+<body>
+<button id="theme-toggle" class="theme-toggle" title="Changer de thème">🌙</button>
+
+<!-- ══ ÉCRAN 1 : ACCUEIL DUEL ══ -->
+<div class="screen active" id="screen-menu">
+  <div class="duel-card">
+    <div class="duel-title">⚔️ Mode <span>1v1</span></div>
+    <p class="duel-subtitle">Affrontez un ami en temps réel</p>
+    <div class="duel-actions">
+      <button class="btn-duel btn-primary" onclick="showScreen('screen-create')">🏠 Créer une partie</button>
+      <button class="btn-duel btn-secondary" onclick="showScreen('screen-join')">🔗 Rejoindre une partie</button>
+    </div>
+    <a href="index.html" class="btn-back">← Retour à l'accueil</a>
+  </div>
+</div>
+
+<!-- ══ ÉCRAN 2 : CRÉER ══ -->
+<div class="screen" id="screen-create">
+  <div class="duel-card">
+    <div class="duel-title">🏠 Créer une partie</div>
+    <div class="input-group">
+      <label>Votre pseudo</label>
+      <input type="text" id="create-name" placeholder="ex: Pierre" maxlength="16" />
+    </div>
+    <div class="input-group">
+      <label>Nombre de questions</label>
+      <select id="create-qcount" style="padding:.75rem 1rem;border-radius:10px;border:2px solid var(--border);background:var(--bg);color:var(--text-primary);font-size:1rem;font-family:inherit;">
+        <option value="5">5 questions</option>
+        <option value="10" selected>10 questions</option>
+        <option value="15">15 questions</option>
+        <option value="20">20 questions</option>
+      </select>
+    </div>
+    <div class="error-msg" id="create-error"></div>
+    <button class="btn-duel btn-primary" onclick="createRoom()">Créer la partie 🚀</button>
+    <button class="btn-back" onclick="showScreen('screen-menu')">← Retour</button>
+  </div>
+</div>
+
+<!-- ══ ÉCRAN 3 : REJOINDRE ══ -->
+<div class="screen" id="screen-join">
+  <div class="duel-card">
+    <div class="duel-title">🔗 Rejoindre une partie</div>
+    <div class="input-group">
+      <label>Votre pseudo</label>
+      <input type="text" id="join-name" placeholder="ex: Lucie" maxlength="16" />
+    </div>
+    <div class="input-group">
+      <label>Code de la partie</label>
+      <input type="text" id="join-code" placeholder="ex: 4829" maxlength="6" style="text-transform:uppercase;letter-spacing:.2em;font-size:1.3rem;" />
+    </div>
+    <div class="error-msg" id="join-error"></div>
+    <button class="btn-duel btn-primary" onclick="joinRoom()">Rejoindre ✅</button>
+    <button class="btn-back" onclick="showScreen('screen-menu')">← Retour</button>
+  </div>
+</div>
+
+<!-- ══ ÉCRAN 4 : LOBBY ══ -->
+<div class="screen" id="screen-lobby">
+  <div class="duel-card">
+    <div class="duel-title">⏳ Salon d'attente</div>
+    <div class="room-code-box">
+      <div class="room-code-label">Code à partager avec votre ami</div>
+      <div class="room-code" id="lobby-code">----</div>
+    </div>
+    <div class="lobby-players">
+      <div class="player-slot me" id="slot-p1">
+        <div class="player-avatar">🧑</div>
+        <div class="player-name" id="p1-name">—</div>
+        <div class="player-status" id="p1-status"><span class="status-dot online"></span> En ligne</div>
+      </div>
+      <div style="display:flex;align-items:center;font-size:1.4rem;font-weight:800;color:var(--text-muted)">VS</div>
+      <div class="player-slot" id="slot-p2">
+        <div class="player-avatar">👤</div>
+        <div class="player-name" id="p2-name">En attente…</div>
+        <div class="player-status" id="p2-status"><span class="status-dot waiting"></span> En attente</div>
+      </div>
+    </div>
+    <button class="btn-duel btn-primary" id="btn-start" onclick="startGame()" disabled>
+      En attente de l'adversaire…
+    </button>
+    <button class="btn-back" onclick="leaveRoom()">Annuler</button>
+  </div>
+</div>
+
+<!-- ══ ÉCRAN 5 : JEU ══ -->
+<div class="screen" id="screen-game">
+  <div class="duel-card">
+    <div class="duel-progress">
+      <span id="q-counter">Question 1/10</span>
+      <span id="q-category"></span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:10%"></div></div>
+    <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+    <div class="duel-scores">
+      <div class="score-badge me-score">
+        <div class="score-label" id="score-my-name">Moi</div>
+        <div class="score-val" id="score-my">0</div>
+      </div>
+      <div class="score-badge">
+        <div class="score-label" id="score-opp-name">Adversaire</div>
+        <div class="score-val" id="score-opp">0</div>
+      </div>
+    </div>
+    <div class="flag-container-duel" id="flag-display"></div>
+    <div class="question-text-duel" id="question-text"></div>
+    <div class="options-grid" id="options-container"></div>
+    <div class="waiting-answer" id="waiting-msg"></div>
+  </div>
+</div>
+
+<!-- ══ ÉCRAN 6 : RÉSULTAT ══ -->
+<div class="screen" id="screen-result">
+  <div class="duel-card">
+    <div class="result-winner" id="result-emoji">🏆</div>
+    <div class="result-title" id="result-title">Partie terminée !</div>
+    <div class="result-subtitle" id="result-subtitle"></div>
+    <div class="result-scores">
+      <div class="result-score-card" id="result-card-p1">
+        <div class="rscore-name" id="result-name-p1">Joueur 1</div>
+        <div class="rscore-val" id="result-score-p1">0</div>
+      </div>
+      <div class="result-score-card" id="result-card-p2">
+        <div class="rscore-name" id="result-name-p2">Joueur 2</div>
+        <div class="rscore-val" id="result-score-p2">0</div>
+      </div>
+    </div>
+    <button class="btn-duel btn-primary" onclick="rematch()">🔄 Revanche</button>
+    <a href="index.html" class="btn-back">← Retour à l'accueil</a>
+  </div>
+</div>
+
+<script type="module" src="duel.js"></script>
+</body>
+</html>
