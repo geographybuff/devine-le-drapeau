@@ -5,173 +5,194 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Carte du Monde — Quiz Géographie</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="theme.js"></script>
   <style>
-    /* ─── LAYOUT ─── */
-    body { margin: 0; padding: 0; overflow: hidden; }
-    .map-ui {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-      padding: .7rem 1rem;
-      background: var(--card-bg);
-      box-shadow: 0 2px 16px var(--shadow);
-      display: flex; align-items: center; gap: .8rem;
-      flex-wrap: wrap;
-    }
-    #map {
-      position: fixed;
-      top: 64px; left: 0; right: 0; bottom: 0;
-      z-index: 1;
-    }
-    @media(max-width:500px) { #map { top: 88px; } }
+    *,*::before,*::after{box-sizing:border-box}
+    body{margin:0;padding:0;font-family:'Inter',sans-serif;
+      background:var(--bg);color:var(--text);height:100vh;overflow:hidden;}
 
-    /* ─── TOP BAR ─── */
-    .map-badge {
-      background: var(--accent); color: #fff; font-size: .72rem;
-      font-weight: 700; padding: .22rem .65rem; border-radius: 99px;
-      white-space: nowrap; flex-shrink: 0;
+    /* ─── ÉCRANS PLEIN ÉCRAN ─── */
+    .fs-screen{
+      position:fixed;inset:0;z-index:900;
+      display:flex;align-items:center;justify-content:center;
+      background:var(--bg);
     }
-    .map-question {
-      flex: 1; font-size: 1rem; font-weight: 700; color: var(--text-primary);
-      min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .map-counter { font-size: .82rem; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
-    .map-score { font-size: .88rem; font-weight: 800; color: var(--accent); white-space: nowrap; }
-    .btn-quit-map {
-      background: none; border: none; cursor: pointer; font-size: 1.1rem;
-      color: var(--text-muted); padding: .2rem .4rem; border-radius: 6px;
-      transition: color .2s; flex-shrink: 0;
-    }
-    .btn-quit-map:hover { color: #ef4444; }
+    .fs-screen.hidden{display:none!important;}
 
-    /* ─── FEEDBACK OVERLAY ─── */
-    .map-feedback {
-      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-      z-index: 2000; background: var(--card-bg); border-radius: 16px;
-      padding: .9rem 1.4rem; box-shadow: 0 4px 24px rgba(0,0,0,.25);
-      font-size: .95rem; font-weight: 600; text-align: center;
-      display: none; min-width: 240px; max-width: 340px;
-      border: 2px solid var(--border);
+    /* ─── CARD ─── */
+    .card{
+      background:var(--bg-card);border:1px solid var(--border);
+      border-radius:22px;padding:2.2rem 2rem;
+      width:90%;max-width:440px;
+      display:flex;flex-direction:column;gap:1.1rem;
+      box-shadow:0 8px 40px rgba(0,0,0,.18);
     }
-    .map-feedback.ok  { border-color: #22c55e; color: #22c55e; }
-    .map-feedback.bad { border-color: #ef4444; color: #ef4444; }
-    .map-feedback .mf-country { font-size: .82rem; color: var(--text-muted); margin-top: .2rem; font-weight: 500; }
+    .card-emoji{text-align:center;font-size:3rem;}
+    .card-title{font-size:1.55rem;font-weight:800;text-align:center;color:var(--text)!important;}
+    .card-title span{color:var(--accent)!important;}
+    .card-sub{text-align:center;color:var(--text-secondary)!important;font-size:.92rem;}
+    .score-big{text-align:center;font-size:2.4rem;font-weight:800;color:var(--text)!important;}
+    .score-big small{font-size:1.1rem;font-weight:500;color:var(--text-secondary)!important;}
+    .detail-text{text-align:center;color:var(--text-secondary)!important;font-size:.9rem;}
+
+    /* ─── BUTTONS ─── */
+    .btn{padding:.82rem;border-radius:12px;font-size:1rem;font-weight:700;
+      border:none;cursor:pointer;font-family:'Inter',sans-serif;
+      transition:opacity .18s,background .18s;width:100%;}
+    .btn-primary{background:var(--accent)!important;color:#fff!important;}
+    .btn-primary:hover{opacity:.88;}
+    .btn-secondary{background:transparent!important;color:var(--text)!important;
+      border:2px solid var(--border)!important;}
+    .btn-secondary:hover{background:var(--border)!important;}
+    .btn-ghost{background:none!important;border:none!important;color:var(--text-secondary)!important;
+      font-size:.9rem;cursor:pointer;font-family:'Inter',sans-serif;padding:.4rem;}
+    .btn-ghost:hover{color:var(--accent)!important;}
+
+    /* ─── SECTION LABEL ─── */
+    .section-lbl{font-size:.78rem;font-weight:700;color:var(--text-secondary)!important;
+      text-transform:uppercase;letter-spacing:.06em;text-align:center;}
+
+    /* ─── CHIPS ─── */
+    .chip-row{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:center;}
+    .chip{
+      padding:.38rem .82rem;border-radius:99px;
+      border:2px solid var(--border);background:var(--bg);
+      font-size:.82rem;font-weight:600;cursor:pointer;
+      color:var(--text)!important;font-family:'Inter',sans-serif;
+      transition:border-color .18s,background .18s,color .18s;
+    }
+    .chip:hover,.chip.on{
+      border-color:var(--accent)!important;
+      background:var(--accent-glow)!important;
+      color:var(--accent)!important;
+    }
+
+    /* ─── TOP BAR JEU ─── */
+    #topbar{
+      position:fixed;top:0;left:0;right:0;z-index:800;
+      padding:.65rem 1rem;background:var(--bg-card);
+      border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;
+    }
+    #topbar.hidden{display:none!important;}
+    .tb-badge{background:var(--accent);color:#fff!important;font-size:.7rem;font-weight:700;
+      padding:.2rem .6rem;border-radius:99px;white-space:nowrap;}
+    #tb-q{flex:1;font-size:1rem;font-weight:700;color:var(--text)!important;
+      min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    #tb-count{font-size:.8rem;font-weight:600;color:var(--text-secondary)!important;white-space:nowrap;}
+    .pbar-wrap{width:80px;height:5px;border-radius:99px;background:var(--border);overflow:hidden;flex-shrink:0;}
+    #pbar{height:100%;border-radius:99px;background:var(--accent);transition:width .4s;}
+    #tb-score{font-size:.88rem;font-weight:800;color:var(--accent)!important;white-space:nowrap;}
+    #btn-quit{background:none;border:none;cursor:pointer;font-size:1.1rem;
+      color:var(--text-secondary);padding:.2rem .4rem;border-radius:6px;flex-shrink:0;}
+    #btn-quit:hover{color:#ef4444;}
+
+    /* ─── ÉCRAN CARTE ─── */
+    #game-screen{
+      position:fixed;top:60px;left:0;right:0;bottom:0;z-index:700;
+    }
+    #game-screen.hidden{display:none!important;}
+    #map{width:100%;height:100%;}
+
+    /* ─── FEEDBACK ─── */
+    #feedback{
+      position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+      z-index:1200;background:var(--bg-card);border-radius:16px;
+      padding:.9rem 1.4rem;box-shadow:0 4px 24px rgba(0,0,0,.28);
+      font-size:.95rem;font-weight:600;text-align:center;
+      display:none;min-width:240px;max-width:340px;
+      border:2px solid var(--border);color:var(--text)!important;
+    }
+    #feedback.ok{border-color:#22c55e!important;color:#22c55e!important;}
+    #feedback.bad{border-color:#ef4444!important;color:#ef4444!important;}
+    #fb-hint{font-size:.82rem;color:var(--text-secondary)!important;margin-top:.25rem;font-weight:500;}
 
     /* ─── BTN NEXT ─── */
-    .btn-map-next {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      z-index: 2000; padding: .75rem 2rem;
-      background: var(--accent); color: #fff; border: none;
-      border-radius: 14px; font-size: 1rem; font-weight: 700;
-      cursor: pointer; font-family: inherit;
-      display: none;
-      box-shadow: 0 4px 20px rgba(99,93,255,.4);
-      transition: opacity .2s;
+    #btn-next{
+      position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+      z-index:1200;padding:.75rem 2.2rem;
+      background:var(--accent);color:#fff;border:none;
+      border-radius:14px;font-size:1rem;font-weight:700;
+      cursor:pointer;font-family:'Inter',sans-serif;display:none;
     }
-    .btn-map-next:hover { opacity: .9; }
+    #btn-next:hover{opacity:.9;}
 
-    /* ─── ÉCRANS (accueil, résultat) ─── */
-    .over-screen {
-      position: fixed; inset: 0; z-index: 3000;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
-    }
-    .over-screen.hidden { display: none; }
-    .over-card {
-      background: var(--card-bg); border-radius: 22px;
-      padding: 2.2rem 2rem; width: 90%; max-width: 420px;
-      box-shadow: 0 8px 40px rgba(0,0,0,.3);
-      display: flex; flex-direction: column; gap: 1.1rem;
-    }
-    .over-title { font-size: 1.6rem; font-weight: 800; text-align: center; color: var(--text-primary); }
-    .over-title span { color: var(--accent); }
-    .over-sub { text-align: center; color: var(--text-muted); font-size: .92rem; }
-    .over-emoji { text-align: center; font-size: 3rem; }
-    .score-big { text-align: center; font-size: 2.2rem; font-weight: 800; color: var(--text-primary); }
-    .score-big span { color: var(--text-muted); font-size: 1.2rem; font-weight: 500; }
-    .btn-ov { padding: .82rem; border-radius: 12px; font-size: 1rem; font-weight: 700; border: none; cursor: pointer; font-family: inherit; }
-    .btn-ov-primary { background: var(--accent); color: #fff; }
-    .btn-ov-primary:hover { opacity: .9; }
-    .btn-ov-secondary { background: transparent; color: var(--text-primary); border: 2px solid var(--border); }
-    .btn-ov-secondary:hover { background: var(--border); }
-    .btn-ov-back { background: none; border: none; color: var(--text-muted); font-size: .9rem; cursor: pointer; text-align: center; font-family: inherit; }
-    .btn-ov-back:hover { color: var(--accent); }
+    /* ─── jsvectormap tweaks ─── */
+    .jvm-zoom-btn{color:#fff!important;}
+    :root:not([data-theme="light"]) #map{background:#0d1627;}
+    :root[data-theme="light"] #map{background:#c8d8f0;}
 
-    /* ─── CONTINENT SELECTOR ─── */
-    .cont-row { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; }
-    .cont-chip {
-      padding: .4rem .85rem; border-radius: 99px;
-      border: 2px solid var(--border); background: var(--bg);
-      font-size: .82rem; font-weight: 600; cursor: pointer;
-      color: var(--text-primary); font-family: inherit;
-      transition: border-color .2s, background .2s;
+    @media(max-width:500px){
+      #game-screen{top:78px;}
+      #topbar{flex-wrap:wrap;}
     }
-    .cont-chip:hover, .cont-chip.selected { border-color: var(--accent); background: var(--accent)20; color: var(--accent); }
-
-    /* ─── PROGRESS ─── */
-    .pbar-map { height: 5px; border-radius: 99px; background: var(--border); overflow: hidden; width: 100px; }
-    .pbar-map-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width .4s; }
   </style>
 </head>
 <body>
-<button id="theme-toggle" class="theme-toggle" style="z-index:4000;" title="Changer de thème">🌙</button>
+<button id="theme-toggle" class="theme-toggle" style="z-index:9999;" title="Changer de thème">🌙</button>
 
-<!-- ─── TOP BAR ─── -->
-<div class="map-ui" id="map-ui" style="display:none;">
-  <span class="map-badge">🗺️ Carte</span>
-  <span class="map-question" id="map-question">Trouvez…</span>
-  <div class="pbar-map"><div class="pbar-map-fill" id="map-pbar" style="width:0%"></div></div>
-  <span class="map-counter" id="map-counter">1/10</span>
-  <span class="map-score" id="map-score">0 pts</span>
-  <button class="btn-quit-map" onclick="endGame()" title="Quitter">✕</button>
-</div>
+<!-- ═══ ACCUEIL ═══ -->
+<div class="fs-screen" id="screen-home">
+  <div class="card">
+    <div class="card-emoji">🗺️</div>
+    <div class="card-title">Carte <span>du Monde</span></div>
+    <div class="card-sub">Clique sur le pays demandé sur la carte !</div>
 
-<!-- ─── MAP ─── -->
-<div id="map"></div>
-
-<!-- ─── FEEDBACK ─── -->
-<div class="map-feedback" id="map-feedback"></div>
-<button class="btn-map-next" id="btn-map-next" onclick="nextQuestion()">Suivant →</button>
-
-<!-- ─── ÉCRAN ACCUEIL ─── -->
-<div class="over-screen" id="screen-home">
-  <div class="over-card">
-    <div class="over-title">🗺️ Mode <span>Carte</span></div>
-    <div class="over-sub">Cliquez sur le bon pays sur la carte du monde !</div>
     <div>
-      <div style="font-size:.78rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">Région</div>
-      <div class="cont-row" id="cont-chips"></div>
+      <div class="section-lbl" style="margin-bottom:.45rem;">Région</div>
+      <div class="chip-row" id="cont-chips"></div>
     </div>
+
     <div>
-      <div style="font-size:.78rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">Nombre de questions</div>
-      <div class="cont-row">
-        <button class="cont-chip" data-q="5">5</button>
-        <button class="cont-chip selected" data-q="10">10</button>
-        <button class="cont-chip" data-q="15">15</button>
-        <button class="cont-chip" data-q="20">20</button>
-      </div>
+      <div class="section-lbl" style="margin-bottom:.45rem;">Questions</div>
+      <div class="chip-row" id="q-chips"></div>
     </div>
-    <button class="btn-ov btn-ov-primary" id="btn-start-map" onclick="startGame()">⏳ Chargement de la carte…</button>
-    <a href="index.html" class="btn-ov-back">← Retour à l'accueil</a>
+
+    <button class="btn btn-primary" onclick="startGame()">C'est parti ! 🚀</button>
+    <button class="btn btn-ghost" onclick="location.href='index.html'">← Retour à l'accueil</button>
   </div>
 </div>
 
-<!-- ─── ÉCRAN RÉSULTAT ─── -->
-<div class="over-screen hidden" id="screen-result">
-  <div class="over-card">
-    <div class="over-emoji" id="res-emoji">🏆</div>
-    <div class="over-title" id="res-title">Partie terminée !</div>
-    <div class="over-sub" id="res-sub"></div>
-    <div class="score-big"><span id="res-score">0</span> <span>/ <span id="res-total">10</span></span></div>
-    <button class="btn-ov btn-ov-primary" onclick="replayGame()">🔄 Rejouer</button>
-    <button class="btn-ov btn-ov-secondary" onclick="goHome()">Changer de région</button>
-    <a href="index.html" class="btn-ov-back">← Accueil</a>
+<!-- ═══ TOP BAR JEU ═══ -->
+<div id="topbar" class="hidden">
+  <span class="tb-badge">🗺️ Carte</span>
+  <span id="tb-q">—</span>
+  <span id="tb-count">0/0</span>
+  <div class="pbar-wrap"><div id="pbar" style="width:0%"></div></div>
+  <span id="tb-score">0 pts</span>
+  <button id="btn-quit" onclick="goHome()" title="Quitter">✕</button>
+</div>
+
+<!-- ═══ ÉCRAN CARTE ═══ -->
+<div id="game-screen" class="hidden">
+  <div id="map"></div>
+</div>
+
+<!-- Feedback + btn suivant -->
+<div id="feedback"><span id="fb-msg"></span><div id="fb-hint"></div></div>
+<button id="btn-next" onclick="nextQuestion()">Question suivante →</button>
+
+<!-- ═══ RÉSULTAT ═══ -->
+<div class="fs-screen hidden" id="screen-result">
+  <div class="card">
+    <div class="card-emoji" id="res-emoji">🎉</div>
+    <div class="card-title">Résultat</div>
+    <div class="score-big"><span id="res-pts">0</span> <small>pts</small></div>
+    <div class="score-big" style="font-size:1.4rem;margin-top:-.5rem;">
+      <span id="res-correct">0</span> <small>/ <span id="res-total">10</span> correctes</small>
+    </div>
+    <div class="detail-text" id="res-detail">—</div>
+    <button class="btn btn-primary" onclick="startGame()">Rejouer 🔄</button>
+    <button class="btn btn-secondary" onclick="goHome()">Changer de réglages</button>
+    <button class="btn btn-ghost" onclick="location.href='index.html'">← Retour à l'accueil</button>
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/js/jsvectormap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/maps/world.js"></script>
 <script src="map.js"></script>
 </body>
 </html>

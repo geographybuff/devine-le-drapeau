@@ -1,264 +1,235 @@
 "use strict";
 /* ================================================================
    MODE CARTE — map.js
-   Leaflet + GeoJSON Natural Earth 110m
+   Utilise jsvectormap (carte SVG intégrée, aucun fetch externe)
+   Les codes pays correspondent aux codes ISO 3166-1 alpha-2
+   en MAJUSCULES tels qu'utilisés par jsvectormap/world.js
 ================================================================ */
 
 // ─── PAYS JOUABLES ──────────────────────────────────────────────
+// c = continent : af|am|as|eu|oc
 const COUNTRIES = [
-  {code:"dz",name:"Algérie",c:"af"},{code:"ao",name:"Angola",c:"af"},
-  {code:"bj",name:"Bénin",c:"af"},{code:"bw",name:"Botswana",c:"af"},
-  {code:"bf",name:"Burkina Faso",c:"af"},{code:"bi",name:"Burundi",c:"af"},
-  {code:"cm",name:"Cameroun",c:"af"},{code:"cv",name:"Cap-Vert",c:"af"},
-  {code:"cf",name:"Rép. centrafricaine",c:"af"},{code:"td",name:"Tchad",c:"af"},
-  {code:"km",name:"Comores",c:"af"},{code:"cg",name:"Congo",c:"af"},
-  {code:"cd",name:"R.D. Congo",c:"af"},{code:"dj",name:"Djibouti",c:"af"},
-  {code:"eg",name:"Égypte",c:"af"},{code:"gq",name:"Guinée équatoriale",c:"af"},
-  {code:"er",name:"Érythrée",c:"af"},{code:"et",name:"Éthiopie",c:"af"},
-  {code:"ga",name:"Gabon",c:"af"},{code:"gm",name:"Gambie",c:"af"},
-  {code:"gh",name:"Ghana",c:"af"},{code:"gn",name:"Guinée",c:"af"},
-  {code:"gw",name:"Guinée-Bissau",c:"af"},{code:"ci",name:"Côte d'Ivoire",c:"af"},
-  {code:"ke",name:"Kenya",c:"af"},{code:"ls",name:"Lesotho",c:"af"},
-  {code:"lr",name:"Libéria",c:"af"},{code:"ly",name:"Libye",c:"af"},
-  {code:"mg",name:"Madagascar",c:"af"},{code:"mw",name:"Malawi",c:"af"},
-  {code:"ml",name:"Mali",c:"af"},{code:"mr",name:"Mauritanie",c:"af"},
-  {code:"ma",name:"Maroc",c:"af"},{code:"mz",name:"Mozambique",c:"af"},
-  {code:"na",name:"Namibie",c:"af"},{code:"ne",name:"Niger",c:"af"},
-  {code:"ng",name:"Nigeria",c:"af"},{code:"rw",name:"Rwanda",c:"af"},
-  {code:"sn",name:"Sénégal",c:"af"},{code:"sl",name:"Sierra Leone",c:"af"},
-  {code:"so",name:"Somalie",c:"af"},{code:"za",name:"Afrique du Sud",c:"af"},
-  {code:"ss",name:"Soudan du Sud",c:"af"},{code:"sd",name:"Soudan",c:"af"},
-  {code:"sz",name:"Eswatini",c:"af"},{code:"tz",name:"Tanzanie",c:"af"},
-  {code:"tg",name:"Togo",c:"af"},{code:"tn",name:"Tunisie",c:"af"},
-  {code:"ug",name:"Ouganda",c:"af"},{code:"zm",name:"Zambie",c:"af"},
-  {code:"zw",name:"Zimbabwe",c:"af"},
-  {code:"ar",name:"Argentine",c:"am"},{code:"bs",name:"Bahamas",c:"am"},
-  {code:"bz",name:"Belize",c:"am"},{code:"bo",name:"Bolivie",c:"am"},
-  {code:"br",name:"Brésil",c:"am"},{code:"ca",name:"Canada",c:"am"},
-  {code:"cl",name:"Chili",c:"am"},{code:"co",name:"Colombie",c:"am"},
-  {code:"cr",name:"Costa Rica",c:"am"},{code:"cu",name:"Cuba",c:"am"},
-  {code:"do",name:"Rép. dominicaine",c:"am"},{code:"ec",name:"Équateur",c:"am"},
-  {code:"sv",name:"Salvador",c:"am"},{code:"gt",name:"Guatemala",c:"am"},
-  {code:"gy",name:"Guyana",c:"am"},{code:"ht",name:"Haïti",c:"am"},
-  {code:"hn",name:"Honduras",c:"am"},{code:"jm",name:"Jamaïque",c:"am"},
-  {code:"mx",name:"Mexique",c:"am"},{code:"ni",name:"Nicaragua",c:"am"},
-  {code:"pa",name:"Panama",c:"am"},{code:"py",name:"Paraguay",c:"am"},
-  {code:"pe",name:"Pérou",c:"am"},{code:"sr",name:"Suriname",c:"am"},
-  {code:"tt",name:"Trinité-et-Tobago",c:"am"},{code:"us",name:"États-Unis",c:"am"},
-  {code:"uy",name:"Uruguay",c:"am"},{code:"ve",name:"Venezuela",c:"am"},
-  {code:"af",name:"Afghanistan",c:"as"},{code:"am",name:"Arménie",c:"as"},
-  {code:"az",name:"Azerbaïdjan",c:"as"},{code:"bd",name:"Bangladesh",c:"as"},
-  {code:"bt",name:"Bhoutan",c:"as"},{code:"bn",name:"Brunéi",c:"as"},
-  {code:"kh",name:"Cambodge",c:"as"},{code:"cn",name:"Chine",c:"as"},
-  {code:"cy",name:"Chypre",c:"as"},{code:"ge",name:"Géorgie",c:"as"},
-  {code:"in",name:"Inde",c:"as"},{code:"id",name:"Indonésie",c:"as"},
-  {code:"ir",name:"Iran",c:"as"},{code:"iq",name:"Irak",c:"as"},
-  {code:"il",name:"Israël",c:"as"},{code:"jp",name:"Japon",c:"as"},
-  {code:"jo",name:"Jordanie",c:"as"},{code:"kz",name:"Kazakhstan",c:"as"},
-  {code:"kw",name:"Koweït",c:"as"},{code:"kg",name:"Kirghizistan",c:"as"},
-  {code:"la",name:"Laos",c:"as"},{code:"lb",name:"Liban",c:"as"},
-  {code:"my",name:"Malaisie",c:"as"},{code:"mn",name:"Mongolie",c:"as"},
-  {code:"mm",name:"Myanmar",c:"as"},{code:"np",name:"Népal",c:"as"},
-  {code:"kp",name:"Corée du Nord",c:"as"},{code:"om",name:"Oman",c:"as"},
-  {code:"pk",name:"Pakistan",c:"as"},{code:"ph",name:"Philippines",c:"as"},
-  {code:"qa",name:"Qatar",c:"as"},{code:"sa",name:"Arabie saoudite",c:"as"},
-  {code:"sg",name:"Singapour",c:"as"},{code:"kr",name:"Corée du Sud",c:"as"},
-  {code:"lk",name:"Sri Lanka",c:"as"},{code:"sy",name:"Syrie",c:"as"},
-  {code:"tw",name:"Taïwan",c:"as"},{code:"tj",name:"Tadjikistan",c:"as"},
-  {code:"th",name:"Thaïlande",c:"as"},{code:"tr",name:"Turquie",c:"as"},
-  {code:"tm",name:"Turkménistan",c:"as"},{code:"ae",name:"Émirats arabes unis",c:"as"},
-  {code:"uz",name:"Ouzbékistan",c:"as"},{code:"vn",name:"Viêt Nam",c:"as"},
-  {code:"ye",name:"Yémen",c:"as"},
-  {code:"al",name:"Albanie",c:"eu"},{code:"at",name:"Autriche",c:"eu"},
-  {code:"by",name:"Biélorussie",c:"eu"},{code:"be",name:"Belgique",c:"eu"},
-  {code:"ba",name:"Bosnie-Herzégovine",c:"eu"},{code:"bg",name:"Bulgarie",c:"eu"},
-  {code:"hr",name:"Croatie",c:"eu"},{code:"cz",name:"Tchéquie",c:"eu"},
-  {code:"dk",name:"Danemark",c:"eu"},{code:"ee",name:"Estonie",c:"eu"},
-  {code:"fi",name:"Finlande",c:"eu"},{code:"fr",name:"France",c:"eu"},
-  {code:"de",name:"Allemagne",c:"eu"},{code:"gr",name:"Grèce",c:"eu"},
-  {code:"hu",name:"Hongrie",c:"eu"},{code:"is",name:"Islande",c:"eu"},
-  {code:"ie",name:"Irlande",c:"eu"},{code:"it",name:"Italie",c:"eu"},
-  {code:"lv",name:"Lettonie",c:"eu"},{code:"lt",name:"Lituanie",c:"eu"},
-  {code:"lu",name:"Luxembourg",c:"eu"},{code:"mt",name:"Malte",c:"eu"},
-  {code:"md",name:"Moldavie",c:"eu"},{code:"me",name:"Monténégro",c:"eu"},
-  {code:"nl",name:"Pays-Bas",c:"eu"},{code:"mk",name:"Macédoine du Nord",c:"eu"},
-  {code:"no",name:"Norvège",c:"eu"},{code:"pl",name:"Pologne",c:"eu"},
-  {code:"pt",name:"Portugal",c:"eu"},{code:"ro",name:"Roumanie",c:"eu"},
-  {code:"ru",name:"Russie",c:"eu"},{code:"rs",name:"Serbie",c:"eu"},
-  {code:"sk",name:"Slovaquie",c:"eu"},{code:"si",name:"Slovénie",c:"eu"},
-  {code:"es",name:"Espagne",c:"eu"},{code:"se",name:"Suède",c:"eu"},
-  {code:"ch",name:"Suisse",c:"eu"},{code:"ua",name:"Ukraine",c:"eu"},
-  {code:"gb",name:"Royaume-Uni",c:"eu"},
-  {code:"au",name:"Australie",c:"oc"},{code:"fj",name:"Fidji",c:"oc"},
-  {code:"nz",name:"Nouvelle-Zélande",c:"oc"},{code:"pg",name:"Papouasie",c:"oc"},
-  {code:"sb",name:"Îles Salomon",c:"oc"},{code:"vu",name:"Vanuatu",c:"oc"},
+  // Afrique
+  {code:"DZ",name:"Algérie",c:"af"},{code:"AO",name:"Angola",c:"af"},
+  {code:"BJ",name:"Bénin",c:"af"},{code:"BW",name:"Botswana",c:"af"},
+  {code:"BF",name:"Burkina Faso",c:"af"},{code:"BI",name:"Burundi",c:"af"},
+  {code:"CM",name:"Cameroun",c:"af"},{code:"CF",name:"Rép. centrafricaine",c:"af"},
+  {code:"TD",name:"Tchad",c:"af"},{code:"CG",name:"Congo",c:"af"},
+  {code:"CD",name:"R.D. Congo",c:"af"},{code:"DJ",name:"Djibouti",c:"af"},
+  {code:"EG",name:"Égypte",c:"af"},{code:"GQ",name:"Guinée équatoriale",c:"af"},
+  {code:"ER",name:"Érythrée",c:"af"},{code:"ET",name:"Éthiopie",c:"af"},
+  {code:"GA",name:"Gabon",c:"af"},{code:"GM",name:"Gambie",c:"af"},
+  {code:"GH",name:"Ghana",c:"af"},{code:"GN",name:"Guinée",c:"af"},
+  {code:"GW",name:"Guinée-Bissau",c:"af"},{code:"CI",name:"Côte d'Ivoire",c:"af"},
+  {code:"KE",name:"Kenya",c:"af"},{code:"LS",name:"Lesotho",c:"af"},
+  {code:"LR",name:"Libéria",c:"af"},{code:"LY",name:"Libye",c:"af"},
+  {code:"MG",name:"Madagascar",c:"af"},{code:"MW",name:"Malawi",c:"af"},
+  {code:"ML",name:"Mali",c:"af"},{code:"MR",name:"Mauritanie",c:"af"},
+  {code:"MA",name:"Maroc",c:"af"},{code:"MZ",name:"Mozambique",c:"af"},
+  {code:"NA",name:"Namibie",c:"af"},{code:"NE",name:"Niger",c:"af"},
+  {code:"NG",name:"Nigeria",c:"af"},{code:"RW",name:"Rwanda",c:"af"},
+  {code:"SN",name:"Sénégal",c:"af"},{code:"SL",name:"Sierra Leone",c:"af"},
+  {code:"SO",name:"Somalie",c:"af"},{code:"ZA",name:"Afrique du Sud",c:"af"},
+  {code:"SS",name:"Soudan du Sud",c:"af"},{code:"SD",name:"Soudan",c:"af"},
+  {code:"SZ",name:"Eswatini",c:"af"},{code:"TZ",name:"Tanzanie",c:"af"},
+  {code:"TG",name:"Togo",c:"af"},{code:"TN",name:"Tunisie",c:"af"},
+  {code:"UG",name:"Ouganda",c:"af"},{code:"ZM",name:"Zambie",c:"af"},
+  {code:"ZW",name:"Zimbabwe",c:"af"},
+  // Amériques
+  {code:"AR",name:"Argentine",c:"am"},{code:"BO",name:"Bolivie",c:"am"},
+  {code:"BR",name:"Brésil",c:"am"},{code:"CA",name:"Canada",c:"am"},
+  {code:"CL",name:"Chili",c:"am"},{code:"CO",name:"Colombie",c:"am"},
+  {code:"CR",name:"Costa Rica",c:"am"},{code:"CU",name:"Cuba",c:"am"},
+  {code:"DO",name:"Rép. dominicaine",c:"am"},{code:"EC",name:"Équateur",c:"am"},
+  {code:"SV",name:"Salvador",c:"am"},{code:"GT",name:"Guatemala",c:"am"},
+  {code:"GY",name:"Guyana",c:"am"},{code:"HT",name:"Haïti",c:"am"},
+  {code:"HN",name:"Honduras",c:"am"},{code:"JM",name:"Jamaïque",c:"am"},
+  {code:"MX",name:"Mexique",c:"am"},{code:"NI",name:"Nicaragua",c:"am"},
+  {code:"PA",name:"Panama",c:"am"},{code:"PY",name:"Paraguay",c:"am"},
+  {code:"PE",name:"Pérou",c:"am"},{code:"SR",name:"Suriname",c:"am"},
+  {code:"TT",name:"Trinité-et-Tobago",c:"am"},{code:"US",name:"États-Unis",c:"am"},
+  {code:"UY",name:"Uruguay",c:"am"},{code:"VE",name:"Venezuela",c:"am"},
+  // Asie
+  {code:"AF",name:"Afghanistan",c:"as"},{code:"AM",name:"Arménie",c:"as"},
+  {code:"AZ",name:"Azerbaïdjan",c:"as"},{code:"BD",name:"Bangladesh",c:"as"},
+  {code:"BT",name:"Bhoutan",c:"as"},{code:"BN",name:"Brunéi",c:"as"},
+  {code:"KH",name:"Cambodge",c:"as"},{code:"CN",name:"Chine",c:"as"},
+  {code:"GE",name:"Géorgie",c:"as"},{code:"IN",name:"Inde",c:"as"},
+  {code:"ID",name:"Indonésie",c:"as"},{code:"IR",name:"Iran",c:"as"},
+  {code:"IQ",name:"Irak",c:"as"},{code:"IL",name:"Israël",c:"as"},
+  {code:"JP",name:"Japon",c:"as"},{code:"JO",name:"Jordanie",c:"as"},
+  {code:"KZ",name:"Kazakhstan",c:"as"},{code:"KW",name:"Koweït",c:"as"},
+  {code:"KG",name:"Kirghizistan",c:"as"},{code:"LA",name:"Laos",c:"as"},
+  {code:"LB",name:"Liban",c:"as"},{code:"MY",name:"Malaisie",c:"as"},
+  {code:"MN",name:"Mongolie",c:"as"},{code:"MM",name:"Myanmar",c:"as"},
+  {code:"NP",name:"Népal",c:"as"},{code:"KP",name:"Corée du Nord",c:"as"},
+  {code:"OM",name:"Oman",c:"as"},{code:"PK",name:"Pakistan",c:"as"},
+  {code:"PH",name:"Philippines",c:"as"},{code:"QA",name:"Qatar",c:"as"},
+  {code:"SA",name:"Arabie saoudite",c:"as"},{code:"SG",name:"Singapour",c:"as"},
+  {code:"KR",name:"Corée du Sud",c:"as"},{code:"LK",name:"Sri Lanka",c:"as"},
+  {code:"SY",name:"Syrie",c:"as"},{code:"TJ",name:"Tadjikistan",c:"as"},
+  {code:"TH",name:"Thaïlande",c:"as"},{code:"TR",name:"Turquie",c:"as"},
+  {code:"TM",name:"Turkménistan",c:"as"},{code:"AE",name:"Émirats arabes unis",c:"as"},
+  {code:"UZ",name:"Ouzbékistan",c:"as"},{code:"VN",name:"Viêt Nam",c:"as"},
+  {code:"YE",name:"Yémen",c:"as"},
+  // Europe
+  {code:"AL",name:"Albanie",c:"eu"},{code:"AT",name:"Autriche",c:"eu"},
+  {code:"BY",name:"Biélorussie",c:"eu"},{code:"BE",name:"Belgique",c:"eu"},
+  {code:"BA",name:"Bosnie-Herzégovine",c:"eu"},{code:"BG",name:"Bulgarie",c:"eu"},
+  {code:"HR",name:"Croatie",c:"eu"},{code:"CZ",name:"Tchéquie",c:"eu"},
+  {code:"DK",name:"Danemark",c:"eu"},{code:"EE",name:"Estonie",c:"eu"},
+  {code:"FI",name:"Finlande",c:"eu"},{code:"FR",name:"France",c:"eu"},
+  {code:"DE",name:"Allemagne",c:"eu"},{code:"GR",name:"Grèce",c:"eu"},
+  {code:"HU",name:"Hongrie",c:"eu"},{code:"IS",name:"Islande",c:"eu"},
+  {code:"IE",name:"Irlande",c:"eu"},{code:"IT",name:"Italie",c:"eu"},
+  {code:"LV",name:"Lettonie",c:"eu"},{code:"LT",name:"Lituanie",c:"eu"},
+  {code:"LU",name:"Luxembourg",c:"eu"},{code:"MT",name:"Malte",c:"eu"},
+  {code:"MD",name:"Moldavie",c:"eu"},{code:"ME",name:"Monténégro",c:"eu"},
+  {code:"NL",name:"Pays-Bas",c:"eu"},{code:"MK",name:"Macédoine du Nord",c:"eu"},
+  {code:"NO",name:"Norvège",c:"eu"},{code:"PL",name:"Pologne",c:"eu"},
+  {code:"PT",name:"Portugal",c:"eu"},{code:"RO",name:"Roumanie",c:"eu"},
+  {code:"RU",name:"Russie",c:"eu"},{code:"RS",name:"Serbie",c:"eu"},
+  {code:"SK",name:"Slovaquie",c:"eu"},{code:"SI",name:"Slovénie",c:"eu"},
+  {code:"ES",name:"Espagne",c:"eu"},{code:"SE",name:"Suède",c:"eu"},
+  {code:"CH",name:"Suisse",c:"eu"},{code:"UA",name:"Ukraine",c:"eu"},
+  {code:"GB",name:"Royaume-Uni",c:"eu"},
+  // Océanie
+  {code:"AU",name:"Australie",c:"oc"},{code:"FJ",name:"Fidji",c:"oc"},
+  {code:"NZ",name:"Nouvelle-Zélande",c:"oc"},{code:"PG",name:"Papouasie",c:"oc"},
+  {code:"SB",name:"Îles Salomon",c:"oc"},{code:"VU",name:"Vanuatu",c:"oc"},
 ];
 
 const CONTINENTS = [
-  {id:"all",name:"Monde entier",icon:"🌐"},
-  {id:"af", name:"Afrique",     icon:"🌍"},
-  {id:"am", name:"Amériques",   icon:"🌎"},
-  {id:"as", name:"Asie",        icon:"🌏"},
-  {id:"eu", name:"Europe",      icon:"🏰"},
-  {id:"oc", name:"Océanie",     icon:"🏝️"},
+  {id:"all", name:"Monde entier", icon:"🌐"},
+  {id:"af",  name:"Afrique",      icon:"🌍"},
+  {id:"am",  name:"Amériques",    icon:"🌎"},
+  {id:"as",  name:"Asie",         icon:"🌏"},
+  {id:"eu",  name:"Europe",       icon:"🏰"},
+  {id:"oc",  name:"Océanie",      icon:"🏝️"},
 ];
 
-// ─── THÈME ───────────────────────────────────────────────────────
-function getTheme() {
-  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-}
-function countryStyle(isDark) {
-  return {
-    fillColor: isDark ? '#2a2d3e' : '#dde3f0',
-    color: isDark ? '#3d4160' : '#b0bacf',
-    weight: 1,
-    fillOpacity: 1
-  };
-}
-function highlightStyle() {
-  return { fillColor: '#6c63ff', color: '#6c63ff', weight: 2, fillOpacity: .85 };
-}
-function correctStyle() {
-  return { fillColor: '#22c55e', color: '#22c55e', weight: 2, fillOpacity: .9 };
-}
-function wrongStyle() {
-  return { fillColor: '#ef4444', color: '#ef4444', weight: 2, fillOpacity: .7 };
-}
+const Q_OPTIONS = [5, 10, 15, 20];
 
-// ─── MAP INIT ────────────────────────────────────────────────────
-const map = L.map('map', {
-  center: [20, 10],
-  zoom: 2,
-  minZoom: 1,
-  maxZoom: 6,
-  zoomControl: true,
-  attributionControl: false,
-  worldCopyJump: false,
-});
-
-let geojsonLayer = null;
-let layerByCode = {};  // ISO_A2 (lowercase) → Leaflet layer
-
-// ─── ISO_A2 ALIASES (certains pays ont des codes spéciaux dans Natural Earth) ──
-const ALIASES = {
-  'xk': 'XK',  // Kosovo
-  'tw': 'TW',  // Taïwan
-  'ps': 'PS',  // Palestine
-};
-
-// ─── CHARGER LE GEOJSON ──────────────────────────────────────────
-const GEOJSON_URLS = [
-  'https://cdn.jsdelivr.net/gh/datasets/geo-countries/data/countries.geojson',
-  'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson',
-];
-
-let geoLoading = false;
-let geoLoaded = false;
-let geoError = false;
-
-async function loadGeoJSON() {
-  geoLoading = true;
-  for (const url of GEOJSON_URLS) {
-    try {
-      const resp = await fetch(url);
-      if (!resp.ok) continue;
-      const data = await resp.json();
-      buildMap(data);
-      geoLoaded = true;
-      geoLoading = false;
-      const btn = document.getElementById('btn-start-map');
-      if (btn) { btn.textContent = "C'est parti ! 🚀"; btn.disabled = false; }
-      return;
-    } catch (e) {
-      console.warn('GeoJSON failed:', url, e);
-    }
-  }
-  // Toutes les URLs ont échoué
-  geoLoading = false;
-  geoError = true;
-  const btn = document.getElementById('btn-start-map');
-  if (btn) {
-    btn.textContent = '❌ Erreur de chargement — vérifiez votre connexion';
-    btn.disabled = true;
-  }
-}
-
-function buildMap(data) {
-  const isDark = getTheme() === 'dark';
-  geojsonLayer = L.geoJSON(data, {
-    style: () => countryStyle(isDark),
-    onEachFeature: (feature, layer) => {
-      const iso = (feature.properties.ISO_A2 || '').toLowerCase();
-      if (iso && iso !== '-9') {
-        layerByCode[iso] = layer;
-      }
-      // Also map by ISO_A2_EH for some edge cases
-      const iso2 = (feature.properties.ISO_A2_EH || '').toLowerCase();
-      if (iso2 && iso2 !== '-9' && !layerByCode[iso2]) {
-        layerByCode[iso2] = layer;
-      }
-      layer.on('click', () => handleMapClick(iso));
-    }
-  }).addTo(map);
-}
-
-// Update map colors when theme changes
-window.addEventListener('themechange', () => {
-  if (!geojsonLayer) return;
-  const isDark = getTheme() === 'dark';
-  geojsonLayer.setStyle(countryStyle(isDark));
-  if (state.answered && state.lastCorrectCode) {
-    const cl = layerByCode[state.lastCorrectCode];
-    if (cl) cl.setStyle(correctStyle());
-  }
-  if (state.answered && state.lastWrongCode) {
-    const wl = layerByCode[state.lastWrongCode];
-    if (wl) wl.setStyle(wrongStyle());
-  }
-});
-
-// ─── ÉTAT JEUX ───────────────────────────────────────────────────
-const state = {
+// ─── ÉTAT ────────────────────────────────────────────────────────
+let state = {
   continent: 'all',
   totalQ: 10,
-  pool: [],
-  session: [],
+  session: [],    // liste de pays mélangés
   index: 0,
   score: 0,
+  correct: 0,
   answered: false,
-  correctCountry: null,
-  lastCorrectCode: null,
-  lastWrongCode: null,
 };
 
-// ─── INIT UI ─────────────────────────────────────────────────────
-function buildContChips() {
-  const row = document.getElementById('cont-chips');
+// ─── INSTANCE CARTE ──────────────────────────────────────────────
+let mapInstance = null;
+
+// ─── THÈME ───────────────────────────────────────────────────────
+function isDark() {
+  return document.documentElement.getAttribute('data-theme') !== 'light';
+}
+function bgColor()     { return isDark() ? '#1e2235' : '#c8d8f0'; }
+function fillColor()   { return isDark() ? '#2a2d3e' : '#dde3f0'; }
+function borderColor() { return isDark() ? '#3d4160' : '#b0bacf'; }
+
+// ─── INIT PAGE ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildContinentChips();
+  buildQChips();
+  // La carte est initialisée la première fois que startGame() est appelé
+  // (le conteneur doit être visible pour que jsvectormap calcule les dimensions)
+});
+
+function buildContinentChips() {
+  const container = document.getElementById('cont-chips');
   CONTINENTS.forEach(cont => {
     const btn = document.createElement('button');
-    btn.className = 'cont-chip' + (cont.id === 'all' ? ' selected' : '');
-    btn.textContent = `${cont.icon} ${cont.name}`;
-    btn.dataset.id = cont.id;
+    btn.className = 'chip' + (cont.id === state.continent ? ' on' : '');
+    btn.textContent = cont.icon + ' ' + cont.name;
     btn.onclick = () => {
-      document.querySelectorAll('.cont-chip').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
       state.continent = cont.id;
+      container.querySelectorAll('.chip').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
     };
-    row.appendChild(btn);
+    container.appendChild(btn);
   });
 }
 
 function buildQChips() {
-  document.querySelectorAll('[data-q]').forEach(btn => {
+  const container = document.getElementById('q-chips');
+  Q_OPTIONS.forEach(n => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (n === state.totalQ ? ' on' : '');
+    btn.textContent = n;
     btn.onclick = () => {
-      document.querySelectorAll('[data-q]').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      state.totalQ = parseInt(btn.dataset.q);
+      state.totalQ = n;
+      container.querySelectorAll('.chip').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
     };
+    container.appendChild(btn);
   });
 }
 
-// ─── GAME FLOW ───────────────────────────────────────────────────
+// ─── INIT CARTE ───────────────────────────────────────────────────
+function initMap() {
+  mapInstance = new jsVectorMap({
+    selector: '#map',
+    map: 'world',
+    backgroundColor: bgColor(),
+    zoomButtons: true,
+    selectable: false,
+    regionStyle: {
+      initial:  { fill: fillColor(), stroke: borderColor(), strokeWidth: 0.5, fillOpacity: 1 },
+      hover:    { fill: '#6c63ff', cursor: 'pointer', fillOpacity: 0.85 },
+    },
+  });
+
+  // Clic : on écoute directement sur le SVG, data-code est posé par jsvectormap
+  document.getElementById('map').addEventListener('click', (e) => {
+    const el = e.target.closest('[data-code]');
+    if (!el) return;
+    handleClick(el.getAttribute('data-code'));
+  });
+}
+
+// ─── COULEURS DIRECTEMENT SUR LE SVG ─────────────────────────────
+// On utilise setAttribute('fill') et PAS style.fill
+// → le hover de jsvectormap (qui passe par style) peut prendre le dessus
+function setRegionFill(code, color) {
+  const el = document.querySelector(`#map [data-code="${code}"]`);
+  if (el) {
+    el.setAttribute('fill', color);
+    el.style.fill = '';  // effacer tout override inline
+  }
+}
+
+function resetAllColors() {
+  const fc = fillColor();
+  document.querySelectorAll('#map [data-code]').forEach(el => {
+    el.setAttribute('fill', fc);
+    el.style.fill = '';
+  });
+}
+
+// ─── THÈME CHANGE ─────────────────────────────────────────────────
+window.addEventListener('themechange', () => {
+  if (!mapInstance) return;
+  // jsvectormap doesn't expose setBackgroundColor, so update via DOM
+  const svg = document.querySelector('#map svg');
+  if (svg) svg.style.background = bgColor();
+  resetAllColors();
+  // Re-highlight si une question est en cours
+  if (!isGameActive()) return;
+  if (state.answered) {
+    setRegionFill(state.session[state.index].code, '#22c55e');
+  }
+});
+
+function isGameActive() {
+  return !document.getElementById('game-screen').classList.contains('hidden');
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -268,195 +239,151 @@ function shuffle(arr) {
   return a;
 }
 
-window.startGame = function() {
-  if (geoError) return;
-  if (!geoLoaded) {
-    const btn = document.getElementById('btn-start-map');
-    if (btn) btn.textContent = '⏳ Chargement de la carte…';
-    let attempts = 0;
-    const wait = setInterval(() => {
-      attempts++;
-      if (geoLoaded) {
-        clearInterval(wait);
-        if (btn) btn.textContent = "C'est parti ! 🚀";
-        window.startGame();
-      } else if (geoError || attempts > 30) {
-        clearInterval(wait);
-        if (btn) {
-          btn.textContent = '❌ Impossible de charger la carte';
-          btn.disabled = true;
-        }
-      }
-    }, 500);
-    return;
-  }
-
-  state.pool = state.continent === 'all'
+// ─── START GAME ──────────────────────────────────────────────────
+window.startGame = function () {
+  const pool = state.continent === 'all'
     ? [...COUNTRIES]
     : COUNTRIES.filter(c => c.c === state.continent);
 
-  // Filter to only countries that exist in the GeoJSON
-  const available = state.pool.filter(c => layerByCode[c.code]);
-  if (available.length < 4) {
-    alert('Pas assez de pays disponibles pour cette région. Essayez "Monde entier".');
+  if (pool.length === 0) {
+    alert('Aucun pays disponible pour cette région.');
     return;
   }
 
-  state.session = shuffle(available).slice(0, Math.min(state.totalQ, available.length));
-  state.index = 0;
-  state.score = 0;
-  state.answered = false;
+  state.session = shuffle(pool).slice(0, Math.min(state.totalQ, pool.length));
+  state.index   = 0;
+  state.score   = 0;
+  state.correct = 0;
 
+  // Masquer accueil, afficher jeu
   document.getElementById('screen-home').classList.add('hidden');
-  document.getElementById('map-ui').style.display = 'flex';
+  document.getElementById('screen-result').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+  document.getElementById('topbar').classList.remove('hidden');
+
+  hideFeedback();
+  document.getElementById('btn-next').style.display = 'none';
+
+  // Initialiser la carte la première fois (conteneur maintenant visible)
+  if (!mapInstance) {
+    initMap();
+  } else {
+    resetAllColors();
+  }
+
   askQuestion();
 };
 
+// ─── QUESTION ─────────────────────────────────────────────────────
 function askQuestion() {
-  if (!geojsonLayer) { setTimeout(askQuestion, 500); return; }
-
-  // Reset map styles
-  const isDark = getTheme() === 'dark';
-  geojsonLayer.setStyle(countryStyle(isDark));
-  state.lastCorrectCode = null;
-  state.lastWrongCode = null;
-
-  const country = state.session[state.index];
-  state.correctCountry = country;
   state.answered = false;
+  const country = state.session[state.index];
 
-  // Update top bar
-  document.getElementById('map-question').textContent = `🔍 Où est ${country.name} ?`;
-  document.getElementById('map-counter').textContent = `${state.index + 1}/${state.session.length}`;
-  document.getElementById('map-score').textContent = `${state.score} pts`;
-  document.getElementById('map-pbar').style.width = `${(state.index / state.session.length) * 100}%`;
+  document.getElementById('tb-q').textContent     = `🔍 Où est ${country.name} ?`;
+  document.getElementById('tb-count').textContent = `${state.index + 1} / ${state.session.length}`;
+  document.getElementById('tb-score').textContent = `${state.score} pts`;
+  document.getElementById('pbar').style.width     = `${(state.index / state.session.length) * 100}%`;
 
-  // Hide feedback & next button
-  const fb = document.getElementById('map-feedback');
-  fb.style.display = 'none';
-  document.getElementById('btn-map-next').style.display = 'none';
+  hideFeedback();
+  document.getElementById('btn-next').style.display = 'none';
+  resetAllColors();
 
-  // Hint: highlight the continent zone
-  fitContinent(country.c);
+  // Zoom sur le continent concerné
+  zoomContinent(country.c);
 }
 
-function fitContinent(c) {
-  const bounds = {
-    af: [[-35, -20], [38, 52]],
-    am: [[-56, -118], [60, -34]],
-    as: [[-10, 26], [55, 150]],
-    eu: [[35, -25], [72, 45]],
-    oc: [[-50, 110], [10, 180]],
-  };
-  if (bounds[c]) {
-    map.fitBounds(bounds[c], { padding: [20, 20], animate: true, duration: .5 });
-  } else {
-    map.setView([20, 10], 2);
-  }
-}
-
-function handleMapClick(clickedCode) {
-  if (state.answered || !state.correctCountry) return;
-  if (!clickedCode || clickedCode === '-9') return;
+// ─── CLIC SUR LA CARTE ────────────────────────────────────────────
+function handleClick(clickedCode) {
+  if (!isGameActive() || state.answered) return;
+  if (!clickedCode) return;
 
   state.answered = true;
-  const isOk = clickedCode === state.correctCountry.code;
+  const country  = state.session[state.index];
+  const correct  = (clickedCode === country.code);
 
-  // Style clicked country
-  const clickedLayer = layerByCode[clickedCode];
-  const correctLayer = layerByCode[state.correctCountry.code];
-
-  if (isOk) {
-    state.score++;
-    state.lastCorrectCode = clickedCode;
-    if (clickedLayer) clickedLayer.setStyle(correctStyle());
+  if (correct) {
+    state.score   += 1;
+    state.correct += 1;
+    setRegionFill(country.code, '#22c55e');
+    showFeedback(true,  '✅ Bonne réponse !', '');
   } else {
-    state.lastWrongCode = clickedCode;
-    state.lastCorrectCode = state.correctCountry.code;
-    if (clickedLayer) clickedLayer.setStyle(wrongStyle());
-    if (correctLayer) {
-      correctLayer.setStyle(highlightStyle());
-      // Zoom to correct country
-      try { map.fitBounds(correctLayer.getBounds(), { padding: [40, 40], maxZoom: 5, animate: true }); } catch {}
-    }
+    setRegionFill(country.code, '#22c55e');  // correct en vert
+    setRegionFill(clickedCode,  '#ef4444');  // cliqué en rouge
+    const clickedName = COUNTRIES.find(c => c.code === clickedCode)?.name || clickedCode;
+    showFeedback(false, '❌ Raté !', `C'était ${country.name}. Tu as cliqué : ${clickedName}`);
   }
 
-  // Feedback
-  const fb = document.getElementById('map-feedback');
-  fb.className = `map-feedback ${isOk ? 'ok' : 'bad'}`;
-  fb.style.display = 'block';
-  fb.innerHTML = isOk
-    ? `✓ Correct ! C'est bien <strong>${state.correctCountry.name}</strong>`
-    : `✗ Incorrect. <strong>${state.correctCountry.name}</strong> est en surbrillance.`;
+  document.getElementById('tb-score').textContent = `${state.score} pts`;
 
-  // Next button
-  const nextBtn = document.getElementById('btn-map-next');
-  nextBtn.textContent = state.index >= state.session.length - 1 ? 'Voir les résultats →' : 'Suivant →';
-  nextBtn.style.display = 'block';
+  // Dernier → bouton "Voir résultat", sinon "Suivant"
+  const btnNext = document.getElementById('btn-next');
+  btnNext.textContent = (state.index + 1 >= state.session.length) ? 'Voir le résultat 🏆' : 'Question suivante →';
+  btnNext.style.display = 'block';
 }
 
-window.nextQuestion = function() {
-  if (state.index >= state.session.length - 1) {
-    showResult();
-    return;
-  }
+// ─── SUIVANT / FIN ────────────────────────────────────────────────
+window.nextQuestion = function () {
   state.index++;
-  askQuestion();
-};
-
-window.endGame = function() {
-  goHome();
-};
-
-function showResult() {
-  document.getElementById('map-ui').style.display = 'none';
-  document.getElementById('map-feedback').style.display = 'none';
-  document.getElementById('btn-map-next').style.display = 'none';
-
-  const s = state.score;
-  const t = state.session.length;
-  const pct = s / t;
-  let emoji, title, sub;
-  if (pct === 1)       { emoji='🏆'; title='Score parfait !';   sub='Vous connaissez parfaitement la carte !'; }
-  else if (pct >= .8)  { emoji='🎉'; title='Excellent !';       sub='Très bonne maîtrise de la géographie !'; }
-  else if (pct >= .5)  { emoji='👍'; title='Pas mal !';         sub='Continuez à vous entraîner !'; }
-  else                 { emoji='📚'; title='À améliorer…';      sub='Révisez la carte et recommencez !'; }
-
-  document.getElementById('res-emoji').textContent = emoji;
-  document.getElementById('res-title').textContent = title;
-  document.getElementById('res-sub').textContent = sub;
-  document.getElementById('res-score').textContent = s;
-  document.getElementById('res-total').textContent = t;
-  document.getElementById('screen-result').classList.remove('hidden');
-
-  // Reset map
-  if (geojsonLayer) {
-    const isDark = getTheme() === 'dark';
-    geojsonLayer.setStyle(countryStyle(isDark));
+  if (state.index >= state.session.length) {
+    showResult();
+  } else {
+    askQuestion();
   }
+};
+
+// ─── RÉSULTAT ─────────────────────────────────────────────────────
+function showResult() {
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('topbar').classList.add('hidden');
+  document.getElementById('btn-next').style.display = 'none';
+  hideFeedback();
+
+  const total = state.session.length;
+  const pct   = Math.round((state.correct / total) * 100);
+
+  document.getElementById('res-pts').textContent     = state.score;
+  document.getElementById('res-correct').textContent = state.correct;
+  document.getElementById('res-total').textContent   = total;
+  document.getElementById('res-emoji').textContent   = pct >= 80 ? '🏆' : pct >= 50 ? '👍' : '😅';
+  document.getElementById('res-detail').textContent  = `${pct}% de réussite`;
+
+  document.getElementById('screen-result').classList.remove('hidden');
 }
 
-window.replayGame = function() {
+// ─── ACCUEIL ──────────────────────────────────────────────────────
+window.goHome = function () {
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('topbar').classList.add('hidden');
   document.getElementById('screen-result').classList.add('hidden');
-  startGame();
-};
-
-window.goHome = function() {
-  document.getElementById('screen-result').classList.add('hidden');
-  document.getElementById('map-ui').style.display = 'none';
-  document.getElementById('map-feedback').style.display = 'none';
-  document.getElementById('btn-map-next').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'none';
+  hideFeedback();
+  resetAllColors();
   document.getElementById('screen-home').classList.remove('hidden');
-  const btn = document.getElementById('btn-start-map');
-  if (btn && geoLoaded) { btn.textContent = "C'est parti ! 🚀"; btn.disabled = false; }
-  if (geojsonLayer) {
-    const isDark = getTheme() === 'dark';
-    geojsonLayer.setStyle(countryStyle(isDark));
-  }
-  map.setView([20, 10], 2);
 };
 
-// ─── BOOT ────────────────────────────────────────────────────────
-buildContChips();
-buildQChips();
-loadGeoJSON();
+// ─── FEEDBACK ─────────────────────────────────────────────────────
+function showFeedback(ok, msg, hint) {
+  const el = document.getElementById('feedback');
+  el.className = ok ? 'feedback ok' : 'feedback bad';    // classe définie dans le CSS inline
+  document.getElementById('fb-msg').textContent  = msg;
+  document.getElementById('fb-hint').textContent = hint;
+  el.style.display = 'block';
+}
+function hideFeedback() {
+  const el = document.getElementById('feedback');
+  if (el) el.style.display = 'none';
+}
+
+// ─── ZOOM CONTINENT ───────────────────────────────────────────────
+function zoomContinent(c) {
+  if (!mapInstance) return;
+  const VIEWS = {
+    af: { scale: 2.8, x: 520, y: 340 },
+    am: { scale: 1.8, x: 220, y: 300 },
+    as: { scale: 2.2, x: 750, y: 270 },
+    eu: { scale: 4.5, x: 510, y: 170 },
+    oc: { scale: 3.0, x: 850, y: 420 },
+  };
+  // jsvectormap ne fournit pas setScale public simple,
+  // on let the user navigate manually — only reset on home
+}
