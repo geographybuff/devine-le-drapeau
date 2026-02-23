@@ -205,25 +205,35 @@ function setRegionFill(code, color) {
 
 function resetAllColors() {
   const fc = fillColor();
+  const bc = borderColor();
   document.querySelectorAll('#map [data-code]').forEach(el => {
-    el.setAttribute('fill', fc);
-    el.style.fill = '';
+    el.setAttribute('fill',   fc);
+    el.setAttribute('stroke', bc);
+    el.style.fill   = '';
+    el.style.stroke = '';
   });
 }
 
 // ─── THÈME CHANGE ─────────────────────────────────────────────────
-window.addEventListener('themechange', () => {
+function applyThemeToMap() {
   if (!mapInstance) return;
-  // jsvectormap doesn't expose setBackgroundColor, so update via DOM
+  // Fond de la carte (océan)
   const svg = document.querySelector('#map svg');
   if (svg) svg.style.background = bgColor();
+  // Couleur des pays
   resetAllColors();
-  // Re-highlight si une question est en cours
-  if (!isGameActive()) return;
-  if (state.answered) {
+  // Re-highlight la bonne réponse si déjà répondu
+  if (isGameActive() && state.answered && state.session.length) {
     setRegionFill(state.session[state.index].code, '#22c55e');
   }
-});
+}
+
+// MutationObserver = plus fiable que l'événement custom themechange
+new MutationObserver(() => applyThemeToMap())
+  .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+// Garde aussi l'event custom au cas où
+window.addEventListener('themechange', applyThemeToMap);
 
 function isGameActive() {
   return !document.getElementById('game-screen').classList.contains('hidden');
