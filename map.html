@@ -127,6 +127,46 @@
     }
     #btn-next:hover{opacity:.9;}
 
+    /* ─── HIGHLIGHT PERSISTANT SILHOUETTE ─── */
+    /* !important garantit que le hover (style inline) ne l'emporte pas */
+    #map [data-code].sil-target  { fill: #a855f7 !important; }
+    #map [data-code].sil-correct { fill: #22c55e !important; }
+
+    /* ─── PANEL RÉPONSES SILHOUETTE ─── */
+    #answer-panel{
+      position:fixed;bottom:0;left:0;right:0;z-index:1100;
+      background:var(--bg-card);border-top:1px solid var(--border);
+      padding:.6rem .75rem .75rem;
+    }
+    #answer-grid{
+      display:grid;grid-template-columns:1fr 1fr;gap:.5rem;
+    }
+    .ans-btn{
+      padding:.7rem .4rem;border-radius:12px;font-size:.88rem;font-weight:700;
+      border:2px solid var(--border);background:var(--bg);
+      color:var(--text)!important;cursor:pointer;font-family:'Inter',sans-serif;
+      transition:border-color .18s,background .18s,color .18s;
+      line-height:1.25;text-align:center;
+    }
+    .ans-btn:hover:not(:disabled){
+      border-color:var(--accent)!important;
+      background:var(--accent-glow)!important;
+      color:var(--accent)!important;
+    }
+    .ans-btn:disabled{cursor:default;opacity:.85;}
+    .ans-btn.correct{border-color:#22c55e!important;background:#22c55e1a!important;color:#22c55e!important;}
+    .ans-btn.wrong  {border-color:#ef4444!important;background:#ef44441a!important;color:#ef4444!important;}
+    #btn-next-sil{
+      display:none;width:100%;margin-top:.5rem;
+      padding:.72rem;background:var(--accent);color:#fff;
+      border:none;border-radius:12px;font-size:.95rem;font-weight:700;
+      cursor:pointer;font-family:'Inter',sans-serif;
+    }
+    #btn-next-sil:hover{opacity:.9;}
+    @media(max-width:500px){
+      .ans-btn{font-size:.8rem;padding:.6rem .3rem;}
+    }
+
     /* ─── jsvectormap tweaks ─── */
     .jvm-zoom-btn{color:#fff!important;}
     :root:not([data-theme="light"]) #map{background:#0d1627;}
@@ -145,7 +185,12 @@
   <div class="card">
     <div class="card-emoji">🗺️</div>
     <div class="card-title">Carte <span>du Monde</span></div>
-    <div class="card-sub">Clique sur le pays demandé sur la carte !</div>
+    <div class="card-sub">Deux modes de jeu : localisez le pays ou devinez-le d'après sa forme !</div>
+
+    <div>
+      <div class="section-lbl" style="margin-bottom:.45rem;">Mode</div>
+      <div class="chip-row" id="mode-chips"></div>
+    </div>
 
     <div>
       <div class="section-lbl" style="margin-bottom:.45rem;">Région</div>
@@ -182,6 +227,12 @@
 <!-- Feedback + btn suivant -->
 <div id="feedback"><span id="fb-msg"></span><div id="fb-hint"></div></div>
 <button id="btn-next" onclick="nextQuestion()">Question suivante →</button>
+
+<!-- Panel réponses Silhouette (caché par défaut) -->
+<div id="answer-panel" style="display:none;">
+  <div id="answer-grid"></div>
+  <button id="btn-next-sil" onclick="nextQuestion()">Question suivante →</button>
+</div>
 
 <!-- ═══ RÉSULTAT ═══ -->
 <div class="fs-screen hidden" id="screen-result">

@@ -113,6 +113,7 @@ const Q_OPTIONS = [5, 10, 15, 20];
 // ─── ÉTAT ────────────────────────────────────────────────────────
 let state = {
   continent: 'all',
+  mode:      'locate',   // 'locate' | 'silhouette'
   totalQ: 10,
   session: [],    // liste de pays mélangés
   index: 0,
@@ -134,6 +135,7 @@ function borderColor() { return isDark() ? '#3d4160' : '#b0bacf'; }
 
 // ─── INIT PAGE ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  buildModeChips();
   buildContinentChips();
   buildQChips();
   // La carte est initialisée la première fois que startGame() est appelé
@@ -163,6 +165,26 @@ function buildQChips() {
     btn.textContent = n;
     btn.onclick = () => {
       state.totalQ = n;
+      container.querySelectorAll('.chip').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+    };
+    container.appendChild(btn);
+  });
+}
+
+function buildModeChips() {
+  const container = document.getElementById('mode-chips');
+  const MODES = [
+    { id: 'locate',     label: '🗺️ Localiser',   title: 'Cliquez le pays sur la carte' },
+    { id: 'silhouette', label: '🔍 Silhouette',   title: 'Devinez le pays d\'après sa forme' },
+  ];
+  MODES.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (m.id === state.mode ? ' on' : '');
+    btn.textContent = m.label;
+    btn.title = m.title;
+    btn.onclick = () => {
+      state.mode = m.id;
       container.querySelectorAll('.chip').forEach(b => b.classList.remove('on'));
       btn.classList.add('on');
     };
@@ -211,20 +233,44 @@ function resetAllColors() {
     el.setAttribute('stroke', bc);
     el.style.fill   = '';
     el.style.stroke = '';
+    el.classList.remove('sil-target', 'sil-correct');
   });
+}
+
+// ─── HIGHLIGHT PERSISTANT SILHOUETTE ──────────────────────────────
+// La classe CSS sil-target utilise fill !important → survit au hover jsvectormap
+function setTargetHighlight(code) {
+  const el = document.querySelector(`#map [data-code="${code}"]`);
+  if (el) {
+    el.classList.remove('sil-correct');
+    el.classList.add('sil-target');
+    el.style.fill = '';
+  }
+}
+function resolveTargetCorrect(code) {
+  const el = document.querySelector(`#map [data-code="${code}"]`);
+  if (el) {
+    el.classList.remove('sil-target');
+    el.classList.add('sil-correct');
+    el.style.fill = '';
+  }
 }
 
 // ─── THÈME CHANGE ─────────────────────────────────────────────────
 function applyThemeToMap() {
   if (!mapInstance) return;
-  // Fond de la carte (océan)
   const svg = document.querySelector('#map svg');
   if (svg) svg.style.background = bgColor();
-  // Couleur des pays
   resetAllColors();
-  // Re-highlight la bonne réponse si déjà répondu
-  if (isGameActive() && state.answered && state.session.length) {
-    setRegionFill(state.session[state.index].code, '#22c55e');
+  if (isGameActive() && state.session.length) {
+    const country = state.session[state.index];
+    if (!country) return;
+    if (state.mode === 'silhouette') {
+      if (state.answered) resolveTargetCorrect(country.code);
+      else                setTargetHighlight(country.code);
+    } else {
+      if (state.answered) setRegionFill(country.code, '#22c55e');
+    }
   }
 }
 
@@ -255,8 +301,8 @@ window.startGame = function () {
     ? [...COUNTRIES]
     : COUNTRIES.filter(c => c.c === state.continent);
 
-  if (pool.length === 0) {
-    alert('Aucun pays disponible pour cette région.');
+  if (pool.length < (state.mode === 'silhouette' ? 4 : 1)) {
+    alert('Pas assez de pays disponibles pour cette région.');
     return;
   }
 
@@ -265,16 +311,22 @@ window.startGame = function () {
   state.score   = 0;
   state.correct = 0;
 
-  // Masquer accueil, afficher jeu
   document.getElementById('screen-home').classList.add('hidden');
   document.getElementById('screen-result').classList.add('hidden');
   document.getElementById('game-screen').classList.remove('hidden');
   document.getElementById('topbar').classList.remove('hidden');
 
-  hideFeedback();
-  document.getElementById('btn-next').style.display = 'none';
+  // Afficher / cacher le panel réponses selon le mode
+  const panel = document.getElementById('answer-panel');
+  const isSil = state.mode === 'silhouette';
+  panel.style.display = isSil ? 'block' : 'none';
+  // Ajuster le bas de la carte pour laisser la place au panel
+  document.getElementById('game-screen').style.bottom = isSil ? '185px' : '0';
 
-  // Initialiser la carte la première fois (conteneur maintenant visible)
+  hideFeedback();
+  document.getElementById('btn-next').style.display     = 'none';
+  document.getElementById('btn-next-sil').style.display = 'none';
+
   if (!mapInstance) {
     initMap();
   } else {
@@ -289,21 +341,29 @@ function askQuestion() {
   state.answered = false;
   const country = state.session[state.index];
 
-  document.getElementById('tb-q').textContent     = `🔍 Où est ${country.name} ?`;
   document.getElementById('tb-count').textContent = `${state.index + 1} / ${state.session.length}`;
   document.getElementById('tb-score').textContent = `${state.score} pts`;
   document.getElementById('pbar').style.width     = `${(state.index / state.session.length) * 100}%`;
 
   hideFeedback();
-  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('btn-next').style.display     = 'none';
+  document.getElementById('btn-next-sil').style.display = 'none';
   resetAllColors();
 
-  // Zoom sur le continent concerné
-  zoomContinent(country.c);
+  if (state.mode === 'silhouette') {
+    document.getElementById('tb-q').textContent = 'De quel pays s\'agit-il ?';
+    setTargetHighlight(country.code);
+    renderAnswerButtons(country);
+  } else {
+    document.getElementById('tb-q').textContent = `🔍 Où est ${country.name} ?`;
+    zoomContinent(country.c);
+  }
 }
 
 // ─── CLIC SUR LA CARTE ────────────────────────────────────────────
 function handleClick(clickedCode) {
+  // En mode silhouette, les clics sur la carte sont ignorés
+  if (state.mode === 'silhouette') return;
   if (!isGameActive() || state.answered) return;
   if (!clickedCode) return;
 
@@ -345,7 +405,9 @@ window.nextQuestion = function () {
 function showResult() {
   document.getElementById('game-screen').classList.add('hidden');
   document.getElementById('topbar').classList.add('hidden');
-  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('btn-next').style.display     = 'none';
+  document.getElementById('btn-next-sil').style.display = 'none';
+  document.getElementById('answer-panel').style.display = 'none';
   hideFeedback();
 
   const total = state.session.length;
@@ -365,7 +427,9 @@ window.goHome = function () {
   document.getElementById('game-screen').classList.add('hidden');
   document.getElementById('topbar').classList.add('hidden');
   document.getElementById('screen-result').classList.add('hidden');
-  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('btn-next').style.display     = 'none';
+  document.getElementById('btn-next-sil').style.display = 'none';
+  document.getElementById('answer-panel').style.display = 'none';
   hideFeedback();
   resetAllColors();
   document.getElementById('screen-home').classList.remove('hidden');
@@ -382,6 +446,52 @@ function showFeedback(ok, msg, hint) {
 function hideFeedback() {
   const el = document.getElementById('feedback');
   if (el) el.style.display = 'none';
+}
+
+// ─── SILHOUETTE : BOUTONS RÉPONSES ──────────────────────────────────
+function renderAnswerButtons(correct) {
+  const grid = document.getElementById('answer-grid');
+  grid.innerHTML = '';
+
+  const pool = (state.continent === 'all' ? COUNTRIES : COUNTRIES.filter(c => c.c === state.continent))
+    .filter(c => c.code !== correct.code);
+  const fallback = COUNTRIES.filter(c => c.code !== correct.code);
+  const wrongPool = pool.length >= 3 ? pool : fallback;
+  const wrong = shuffle(wrongPool).slice(0, 3);
+
+  shuffle([correct, ...wrong]).forEach(country => {
+    const btn = document.createElement('button');
+    btn.className    = 'ans-btn';
+    btn.textContent  = country.name;
+    btn.dataset.code = country.code;
+    btn.addEventListener('click', () => handleSilhouetteAnswer(country.code, correct.code));
+    grid.appendChild(btn);
+  });
+}
+
+function handleSilhouetteAnswer(clicked, correctCode) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const isCorrect = clicked === correctCode;
+  if (isCorrect) { state.score++; state.correct++; }
+
+  document.getElementById('tb-score').textContent = `${state.score} pts`;
+
+  // Highlight carte
+  resolveTargetCorrect(correctCode);
+  if (!isCorrect) setRegionFill(clicked, '#ef4444');
+
+  // Colorier les boutons
+  document.querySelectorAll('.ans-btn').forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.code === correctCode)             btn.classList.add('correct');
+    else if (btn.dataset.code === clicked && !isCorrect) btn.classList.add('wrong');
+  });
+
+  const btnSil = document.getElementById('btn-next-sil');
+  btnSil.textContent   = (state.index + 1 >= state.session.length) ? 'Voir le résultat 🏆' : 'Question suivante →';
+  btnSil.style.display = 'block';
 }
 
 // ─── ZOOM CONTINENT ───────────────────────────────────────────────
