@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carte du Monde — Quiz Géographie</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="theme.js"></script>
+  <style>
+    /* ─── LAYOUT ─── */
+    body { margin: 0; padding: 0; overflow: hidden; }
+    .map-ui {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: .7rem 1rem;
+      background: var(--card-bg);
+      box-shadow: 0 2px 16px var(--shadow);
+      display: flex; align-items: center; gap: .8rem;
+      flex-wrap: wrap;
+    }
+    #map {
+      position: fixed;
+      top: 64px; left: 0; right: 0; bottom: 0;
+      z-index: 1;
+    }
+    @media(max-width:500px) { #map { top: 88px; } }
+
+    /* ─── TOP BAR ─── */
+    .map-badge {
+      background: var(--accent); color: #fff; font-size: .72rem;
+      font-weight: 700; padding: .22rem .65rem; border-radius: 99px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .map-question {
+      flex: 1; font-size: 1rem; font-weight: 700; color: var(--text-primary);
+      min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .map-counter { font-size: .82rem; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+    .map-score { font-size: .88rem; font-weight: 800; color: var(--accent); white-space: nowrap; }
+    .btn-quit-map {
+      background: none; border: none; cursor: pointer; font-size: 1.1rem;
+      color: var(--text-muted); padding: .2rem .4rem; border-radius: 6px;
+      transition: color .2s; flex-shrink: 0;
+    }
+    .btn-quit-map:hover { color: #ef4444; }
+
+    /* ─── FEEDBACK OVERLAY ─── */
+    .map-feedback {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      z-index: 2000; background: var(--card-bg); border-radius: 16px;
+      padding: .9rem 1.4rem; box-shadow: 0 4px 24px rgba(0,0,0,.25);
+      font-size: .95rem; font-weight: 600; text-align: center;
+      display: none; min-width: 240px; max-width: 340px;
+      border: 2px solid var(--border);
+    }
+    .map-feedback.ok  { border-color: #22c55e; color: #22c55e; }
+    .map-feedback.bad { border-color: #ef4444; color: #ef4444; }
+    .map-feedback .mf-country { font-size: .82rem; color: var(--text-muted); margin-top: .2rem; font-weight: 500; }
+
+    /* ─── BTN NEXT ─── */
+    .btn-map-next {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 2000; padding: .75rem 2rem;
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 14px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      display: none;
+      box-shadow: 0 4px 20px rgba(99,93,255,.4);
+      transition: opacity .2s;
+    }
+    .btn-map-next:hover { opacity: .9; }
+
+    /* ─── ÉCRANS (accueil, résultat) ─── */
+    .over-screen {
+      position: fixed; inset: 0; z-index: 3000;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+    }
+    .over-screen.hidden { display: none; }
+    .over-card {
+      background: var(--card-bg); border-radius: 22px;
+      padding: 2.2rem 2rem; width: 90%; max-width: 420px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.3);
+      display: flex; flex-direction: column; gap: 1.1rem;
+    }
+    .over-title { font-size: 1.6rem; font-weight: 800; text-align: center; color: var(--text-primary); }
+    .over-title span { color: var(--accent); }
+    .over-sub { text-align: center; color: var(--text-muted); font-size: .92rem; }
+    .over-emoji { text-align: center; font-size: 3rem; }
+    .score-big { text-align: center; font-size: 2.2rem; font-weight: 800; color: var(--text-primary); }
+    .score-big span { color: var(--text-muted); font-size: 1.2rem; font-weight: 500; }
+    .btn-ov { padding: .82rem; border-radius: 12px; font-size: 1rem; font-weight: 700; border: none; cursor: pointer; font-family: inherit; }
+    .btn-ov-primary { background: var(--accent); color: #fff; }
+    .btn-ov-primary:hover { opacity: .9; }
+    .btn-ov-secondary { background: transparent; color: var(--text-primary); border: 2px solid var(--border); }
+    .btn-ov-secondary:hover { background: var(--border); }
+    .btn-ov-back { background: none; border: none; color: var(--text-muted); font-size: .9rem; cursor: pointer; text-align: center; font-family: inherit; }
+    .btn-ov-back:hover { color: var(--accent); }
+
+    /* ─── CONTINENT SELECTOR ─── */
+    .cont-row { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; }
+    .cont-chip {
+      padding: .4rem .85rem; border-radius: 99px;
+      border: 2px solid var(--border); background: var(--bg);
+      font-size: .82rem; font-weight: 600; cursor: pointer;
+      color: var(--text-primary); font-family: inherit;
+      transition: border-color .2s, background .2s;
+    }
+    .cont-chip:hover, .cont-chip.selected { border-color: var(--accent); background: var(--accent)20; color: var(--accent); }
+
+    /* ─── PROGRESS ─── */
+    .pbar-map { height: 5px; border-radius: 99px; background: var(--border); overflow: hidden; width: 100px; }
+    .pbar-map-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width .4s; }
+  </style>
+</head>
+<body>
+<button id="theme-toggle" class="theme-toggle" style="z-index:4000;" title="Changer de thème">🌙</button>
+
+<!-- ─── TOP BAR ─── -->
+<div class="map-ui" id="map-ui" style="display:none;">
+  <span class="map-badge">🗺️ Carte</span>
+  <span class="map-question" id="map-question">Trouvez…</span>
+  <div class="pbar-map"><div class="pbar-map-fill" id="map-pbar" style="width:0%"></div></div>
+  <span class="map-counter" id="map-counter">1/10</span>
+  <span class="map-score" id="map-score">0 pts</span>
+  <button class="btn-quit-map" onclick="endGame()" title="Quitter">✕</button>
+</div>
+
+<!-- ─── MAP ─── -->
+<div id="map"></div>
+
+<!-- ─── FEEDBACK ─── -->
+<div class="map-feedback" id="map-feedback"></div>
+<button class="btn-map-next" id="btn-map-next" onclick="nextQuestion()">Suivant →</button>
+
+<!-- ─── ÉCRAN ACCUEIL ─── -->
+<div class="over-screen" id="screen-home">
+  <div class="over-card">
+    <div class="over-title">🗺️ Mode <span>Carte</span></div>
+    <div class="over-sub">Cliquez sur le bon pays sur la carte du monde !</div>
+    <div>
+      <div style="font-size:.78rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">Région</div>
+      <div class="cont-row" id="cont-chips"></div>
+    </div>
+    <div>
+      <div style="font-size:.78rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">Nombre de questions</div>
+      <div class="cont-row">
+        <button class="cont-chip" data-q="5">5</button>
+        <button class="cont-chip selected" data-q="10">10</button>
+        <button class="cont-chip" data-q="15">15</button>
+        <button class="cont-chip" data-q="20">20</button>
+      </div>
+    </div>
+    <button class="btn-ov btn-ov-primary" onclick="startGame()">C'est parti ! 🚀</button>
+    <a href="index.html" class="btn-ov-back">← Retour à l'accueil</a>
+  </div>
+</div>
+
+<!-- ─── ÉCRAN RÉSULTAT ─── -->
+<div class="over-screen hidden" id="screen-result">
+  <div class="over-card">
+    <div class="over-emoji" id="res-emoji">🏆</div>
+    <div class="over-title" id="res-title">Partie terminée !</div>
+    <div class="over-sub" id="res-sub"></div>
+    <div class="score-big"><span id="res-score">0</span> <span>/ <span id="res-total">10</span></span></div>
+    <button class="btn-ov btn-ov-primary" onclick="replayGame()">🔄 Rejouer</button>
+    <button class="btn-ov btn-ov-secondary" onclick="goHome()">Changer de région</button>
+    <a href="index.html" class="btn-ov-back">← Accueil</a>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="map.js"></script>
+</body>
+</html>

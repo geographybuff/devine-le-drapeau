@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modes Croisés — Quiz Géographie</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="theme.js"></script>
+  <style>
+    /* ─── SCREENS ─── */
+    .screen { display: none; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 1.5rem 1rem; }
+
+    /* ─── CARD ─── */
+    .cx-card {
+      background: var(--card-bg);
+      border-radius: 22px;
+      padding: 2.2rem 2rem;
+      width: 100%;
+      max-width: 560px;
+      box-shadow: 0 8px 40px var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 1.3rem;
+    }
+    .cx-title { font-size: 1.65rem; font-weight: 800; text-align: center; color: var(--text-primary); }
+    .cx-title span { color: var(--accent); }
+    .cx-subtitle { text-align: center; color: var(--text-muted); font-size: .93rem; margin-top: -.5rem; }
+
+    /* ─── MODE PICKER ─── */
+    .mode-picker { display: flex; flex-direction: column; gap: .7rem; }
+    .mode-tile {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.2rem;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, transform .12s;
+      font-family: inherit;
+      text-align: left;
+    }
+    .mode-tile:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .mode-tile-icon { font-size: 2rem; flex-shrink: 0; }
+    .mode-tile-body { flex: 1; }
+    .mode-tile-name { display: block; font-weight: 700; font-size: 1rem; color: var(--text-primary); }
+    .mode-tile-desc { display: block; font-size: .82rem; color: var(--text-muted); margin-top: .18rem; }
+    .mode-tile-arrow { color: var(--text-muted); font-size: 1.3rem; }
+
+    /* ─── CONTINENT GRID ─── */
+    .cont-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .65rem; }
+    @media(max-width:480px) { .cont-grid { grid-template-columns: repeat(2,1fr); } }
+    .cont-btn {
+      display: flex; flex-direction: column; align-items: center; gap: .3rem;
+      padding: .85rem .5rem;
+      background: var(--bg); border: 2px solid var(--border); border-radius: 14px;
+      cursor: pointer; font-family: inherit; transition: border-color .2s, transform .12s;
+    }
+    .cont-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .cont-btn.selected { border-color: var(--accent); background: var(--accent)18; }
+    .cont-icon { font-size: 1.5rem; }
+    .cont-name { font-size: .78rem; font-weight: 700; color: var(--text-primary); text-align: center; }
+    .cont-count { font-size: .7rem; color: var(--text-muted); }
+
+    /* ─── GAME ─── */
+    .top-bar-cx { display: flex; justify-content: space-between; align-items: center; }
+    .mode-badge { background: var(--accent); color: #fff; font-size: .72rem; font-weight: 700; padding: .2rem .6rem; border-radius: 99px; }
+    .counter-cx { font-size: .85rem; color: var(--text-muted); font-weight: 600; }
+    .score-cx { font-size: .85rem; font-weight: 700; color: var(--text-primary); }
+    .pbar { height: 6px; border-radius: 99px; background: var(--border); overflow: hidden; }
+    .pbar-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width .4s; }
+
+    /* ─── CAP→FLAG QUESTION ─── */
+    .capital-display {
+      text-align: center;
+      background: var(--bg);
+      border-radius: 14px;
+      padding: 1.4rem;
+      border: 2px solid var(--border);
+    }
+    .capital-label { font-size: .75rem; color: var(--text-muted); font-weight:600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .4rem; }
+    .capital-name { font-size: 1.9rem; font-weight: 800; color: var(--text-primary); }
+    .capital-hint { font-size: .82rem; color: var(--text-muted); margin-top: .4rem; }
+
+    /* Flag choices grid (cap→flag) */
+    .flag-choices-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
+    }
+    .flag-choice {
+      display: flex; flex-direction: column; align-items: center; gap: .5rem;
+      padding: .85rem .5rem;
+      background: var(--bg); border: 2px solid var(--border); border-radius: 14px;
+      cursor: pointer; font-family: inherit; transition: border-color .2s, transform .12s;
+    }
+    .flag-choice:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-2px); }
+    .flag-choice img { width: 100%; max-width: 110px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+    .flag-choice:disabled { cursor: default; }
+    .flag-choice.correct { border-color: #22c55e; background: #22c55e18; }
+    .flag-choice.wrong { border-color: #ef4444; background: #ef444418; }
+
+    /* ─── FLAG→CAP QUESTION ─── */
+    .flag-display-cx {
+      text-align: center;
+    }
+    .flag-display-cx img { max-width: 200px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+    .flag-question { text-align: center; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+
+    /* Capital answer buttons */
+    .cap-answers { display: flex; flex-direction: column; gap: .6rem; }
+    .cap-btn {
+      padding: .85rem 1rem; border-radius: 12px;
+      border: 2px solid var(--border); background: var(--bg);
+      color: var(--text-primary); font-size: .95rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; text-align: left;
+      transition: border-color .2s, transform .12s;
+    }
+    .cap-btn:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-2px); }
+    .cap-btn:disabled { cursor: default; }
+    .cap-btn.correct { background: #22c55e; border-color: #22c55e; color: #fff; }
+    .cap-btn.wrong { background: #ef4444; border-color: #ef4444; color: #fff; }
+    .cap-btn.reveal { background: #22c55e18; border-color: #22c55e; }
+
+    /* ─── FEEDBACK ─── */
+    .feedback-cx {
+      display: none; padding: .85rem 1rem; border-radius: 12px;
+      font-size: .92rem; font-weight: 600; text-align: center;
+    }
+    .feedback-cx.show { display: block; }
+    .feedback-cx.ok { background: #22c55e20; color: #22c55e; border: 1.5px solid #22c55e; }
+    .feedback-cx.bad { background: #ef444420; color: #ef4444; border: 1.5px solid #ef4444; }
+
+    .btn-next-cx {
+      padding: .85rem; border-radius: 12px; background: var(--accent); color: #fff;
+      font-size: 1rem; font-weight: 700; border: none; cursor: pointer; font-family: inherit;
+      transition: opacity .2s;
+    }
+    .btn-next-cx:disabled { opacity: .4; cursor: default; }
+    .btn-next-cx:not(:disabled):hover { opacity: .9; }
+
+    /* ─── RESULT ─── */
+    .result-emoji { text-align: center; font-size: 3.5rem; }
+    .result-title { text-align: center; font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
+    .result-sub { text-align: center; color: var(--text-muted); font-size: .95rem; }
+    .score-ring-wrap { display: flex; justify-content: center; }
+    .score-ring-wrap svg { width: 120px; height: 120px; }
+
+    /* ─── BTNS ─── */
+    .btn-cx { padding: .85rem; border-radius: 12px; font-size: 1rem; font-weight: 700; border: none; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+    .btn-cx-primary { background: var(--accent); color: #fff; }
+    .btn-cx-primary:hover { opacity: .9; }
+    .btn-cx-secondary { background: transparent; color: var(--text-primary); border: 2px solid var(--border); }
+    .btn-cx-secondary:hover { background: var(--border); }
+    .btn-cx-back { background: none; border: none; color: var(--text-muted); font-size: .9rem; cursor: pointer; text-align: center; font-family: inherit; }
+    .btn-cx-back:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+<button id="theme-toggle" class="theme-toggle" title="Changer de thème">🌙</button>
+
+<!-- ══ ACCUEIL ══ -->
+<div class="screen active" id="screen-home">
+  <div class="cx-card">
+    <div class="cx-title">🔀 Modes <span>Croisés</span></div>
+    <p class="cx-subtitle">Combine drapeaux et capitales !</p>
+    <div class="mode-picker">
+      <button class="mode-tile" onclick="selectMode('cap-flag')">
+        <span class="mode-tile-icon">🏙️→🏳️</span>
+        <div class="mode-tile-body">
+          <span class="mode-tile-name">Capitale → Drapeau</span>
+          <span class="mode-tile-desc">Une capitale est affichée. Trouvez son drapeau parmi 4 choix.</span>
+        </div>
+        <span class="mode-tile-arrow">›</span>
+      </button>
+      <button class="mode-tile" onclick="selectMode('flag-cap')">
+        <span class="mode-tile-icon">🏳️→🏙️</span>
+        <div class="mode-tile-body">
+          <span class="mode-tile-name">Drapeau → Capitale</span>
+          <span class="mode-tile-desc">Un drapeau est affiché. Trouvez la capitale parmi 4 choix.</span>
+        </div>
+        <span class="mode-tile-arrow">›</span>
+      </button>
+    </div>
+    <a href="index.html" class="btn-cx-back">← Retour à l'accueil</a>
+  </div>
+</div>
+
+<!-- ══ CONTINENT ══ -->
+<div class="screen" id="screen-continent">
+  <div class="cx-card">
+    <div class="cx-title" id="cont-title">Choisir une région</div>
+    <p class="cx-subtitle">Sélectionnez la zone géographique.</p>
+    <div class="cont-grid" id="cont-grid"></div>
+    <button class="btn-cx-back" onclick="showScreen('screen-home')">← Retour</button>
+  </div>
+</div>
+
+<!-- ══ JEU : CAPITALE → DRAPEAU ══ -->
+<div class="screen" id="screen-capflag">
+  <div class="cx-card">
+    <div class="top-bar-cx">
+      <span class="mode-badge">🏙️ → 🏳️ Capitale → Drapeau</span>
+      <span class="counter-cx" id="cf-counter">1/10</span>
+      <span class="score-cx" id="cf-score">0 pts</span>
+    </div>
+    <div class="pbar"><div class="pbar-fill" id="cf-progress" style="width:0%"></div></div>
+    <div class="capital-display">
+      <div class="capital-label">Quelle pays a cette capitale ?</div>
+      <div class="capital-name" id="cf-capital">—</div>
+      <div class="capital-hint" id="cf-hint"></div>
+    </div>
+    <div class="flag-choices-grid" id="cf-flags"></div>
+    <div class="feedback-cx" id="cf-feedback"></div>
+    <button class="btn-next-cx" id="cf-next" disabled onclick="nextQ('capflag')">Suivant →</button>
+  </div>
+</div>
+
+<!-- ══ JEU : DRAPEAU → CAPITALE ══ -->
+<div class="screen" id="screen-flagcap">
+  <div class="cx-card">
+    <div class="top-bar-cx">
+      <span class="mode-badge">🏳️ → 🏙️ Drapeau → Capitale</span>
+      <span class="counter-cx" id="fc-counter">1/10</span>
+      <span class="score-cx" id="fc-score">0 pts</span>
+    </div>
+    <div class="pbar"><div class="pbar-fill" id="fc-progress" style="width:0%"></div></div>
+    <div class="flag-display-cx">
+      <img id="fc-flag" src="" alt="Drapeau" />
+    </div>
+    <div class="flag-question">🏙️ Quelle est la capitale de ce pays ?</div>
+    <div class="cap-answers" id="fc-options"></div>
+    <div class="feedback-cx" id="fc-feedback"></div>
+    <button class="btn-next-cx" id="fc-next" disabled onclick="nextQ('flagcap')">Suivant →</button>
+  </div>
+</div>
+
+<!-- ══ RÉSULTAT ══ -->
+<div class="screen" id="screen-result">
+  <div class="cx-card">
+    <div class="result-emoji" id="res-emoji">🏆</div>
+    <div class="result-title" id="res-title">Partie terminée !</div>
+    <div class="result-sub" id="res-sub"></div>
+    <div class="score-ring-wrap">
+      <svg viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="10"/>
+        <circle id="res-ring" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="10"
+          stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="327"
+          transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .8s ease"/>
+      </svg>
+    </div>
+    <div style="text-align:center;font-size:1.6rem;font-weight:800;color:var(--text-primary);">
+      <span id="res-score">0</span><span style="color:var(--text-muted);font-size:1rem;">/10</span>
+    </div>
+    <button class="btn-cx btn-cx-primary" onclick="replayGame()">🔄 Rejouer</button>
+    <button class="btn-cx btn-cx-secondary" onclick="showScreen('screen-continent')">Changer de région</button>
+    <button class="btn-cx btn-cx-secondary" onclick="showScreen('screen-home')">Changer de mode</button>
+    <a href="index.html" class="btn-cx-back">← Accueil</a>
+  </div>
+</div>
+
+<script src="crossmodes.js"></script>
+</body>
+</html>
