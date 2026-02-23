@@ -277,7 +277,7 @@ const CONTINENTS = [
   {id:"as",  name:"Asie",            icon:"🌏", color:"#3b82f6", unit:"pays"},
   {id:"eu",  name:"Europe",          icon:"🏰", color:"#a78bfa", unit:"pays"},
   {id:"oc",  name:"Océanie",         icon:"🏙️", color:"#06b6d4", unit:"pays"},
-  {id:"us",  name:"États des USA",   icon:"🇺🇸", color:"#ef4444", unit:"états"},
+  {id:"us",  name:"États des USA",   icon:"🇺🇸", img:"https://flagcdn.com/w40/us.png", color:"#ef4444", unit:"états"},
 ];
 
 // ─────────────────────────────────────────────────────────────────
@@ -484,8 +484,11 @@ function buildContinentGrid() {
     const card = document.createElement("button");
     card.className = "continent-card";
     card.dataset.id = cont.id;
+    const iconHtml = cont.img
+      ? `<img src="${cont.img}" alt="${cont.name}" style="width:36px;height:auto;border-radius:4px;object-fit:cover;"/>`
+      : `<span class="continent-icon">${cont.icon}</span>`;
     card.innerHTML = `
-      <span class="continent-icon">${cont.icon}</span>
+      ${iconHtml}
       <span class="continent-name">${cont.name}</span>
       <span class="continent-count">${pool.length} ${cont.unit || 'pays'}</span>`;
     card.addEventListener("click", () => selectContinent(cont.id));
@@ -501,7 +504,10 @@ function selectContinent(id) {
     : COUNTRIES.filter(c => c.c === id);
 
   // Update pill on mode screen
-  $('mode-continent-pill').innerHTML = `${cont.icon} ${cont.name} — ${state.pool.length} ${cont.unit || 'pays'}`;
+  const iconHtml = cont.img
+    ? `<img src="${cont.img}" alt="${cont.name}" style="width:24px;height:auto;border-radius:3px;vertical-align:middle;"/>`
+    : cont.icon;
+  $('mode-continent-pill').innerHTML = `${iconHtml} ${cont.name} — ${state.pool.length} ${cont.unit || 'pays'}`;
 
   // Highlight selected card
   document.querySelectorAll(".continent-card").forEach(c => c.classList.toggle("selected", c.dataset.id === id));
