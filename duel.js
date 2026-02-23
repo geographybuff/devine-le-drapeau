@@ -114,7 +114,7 @@ let state = {
   myName: null,
   roomRef: null,
   unsubscribe: null,
-  currentQ: 0,
+  currentQ: -1,
   totalQ: 10,
   myScore: 0,
   oppScore: 0,
@@ -257,8 +257,8 @@ function handleRoomUpdate(data) {
     }
 
     const q = data.currentQ;
-    // si question différente → afficher
-    if (q !== state.currentQ || state.currentQ === 0) {
+    // si question différente → afficher (state.currentQ démarre à -1 pour capturer la Q0)
+    if (q !== state.currentQ) {
       state.currentQ = q;
       state.answered = false;
       clearInterval(state.timerInterval);
@@ -312,7 +312,12 @@ function renderQuestion(q, idx, total) {
     const btn = document.createElement('button');
     btn.className = 'option-btn';
     btn.textContent = opt;
-    btn.onclick = () => submitAnswer(opt, q.answer);
+    btn.addEventListener('click', () => {
+      if (state.answered) return;   // garde locale immédiate
+      // Désactiver TOUS les boutons instantanément, avant l'attente Firestore
+      document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+      submitAnswer(opt, q.answer);
+    });
     container.appendChild(btn);
   });
 }
