@@ -115,11 +115,13 @@ let state = {
   continent: 'all',
   mode:      'locate',   // 'locate' | 'silhouette'
   totalQ: 10,
-  session: [],    // liste de pays mélangés
+  session: [],
   index: 0,
   score: 0,
   correct: 0,
   answered: false,
+  lastCorrect: null,   // code du pays correct (pour re-highlight au changement de thème)
+  lastWrong:   null,   // code du pays cliqué erronément
 };
 
 // ─── INSTANCE CARTE ──────────────────────────────────────────────
@@ -233,12 +235,21 @@ function resetAllColors() {
     el.setAttribute('stroke', bc);
     el.style.fill   = '';
     el.style.stroke = '';
-    el.classList.remove('sil-target', 'sil-correct');
+    el.classList.remove('sil-target', 'sil-correct', 'loc-correct', 'loc-wrong');
   });
 }
 
-// ─── HIGHLIGHT PERSISTANT SILHOUETTE ──────────────────────────────
-// La classe CSS sil-target utilise fill !important → survit au hover jsvectormap
+// ─── HIGHLIGHT PERSISTANT LOCALISER ───────────────────────────────────
+function setLocCorrect(code) {
+  const el = document.querySelector(`#map [data-code="${code}"]`);
+  if (el) { el.classList.add('loc-correct'); el.style.fill = ''; }
+}
+function setLocWrong(code) {
+  const el = document.querySelector(`#map [data-code="${code}"]`);
+  if (el) { el.classList.add('loc-wrong'); el.style.fill = ''; }
+}
+
+// ─── HIGHLIGHT PERSISTANT SILHOUETTE ─────────────────────────────────
 function setTargetHighlight(code) {
   const el = document.querySelector(`#map [data-code="${code}"]`);
   if (el) {
@@ -269,7 +280,9 @@ function applyThemeToMap() {
       if (state.answered) resolveTargetCorrect(country.code);
       else                setTargetHighlight(country.code);
     } else {
-      if (state.answered) setRegionFill(country.code, '#22c55e');
+      // mode locate : re-appliquer les classes persistantes
+      if (state.lastCorrect) setLocCorrect(state.lastCorrect);
+      if (state.lastWrong)   setLocWrong(state.lastWrong);
     }
   }
 }
@@ -338,7 +351,9 @@ window.startGame = function () {
 
 // ─── QUESTION ─────────────────────────────────────────────────────
 function askQuestion() {
-  state.answered = false;
+  state.answered    = false;
+  state.lastCorrect = null;
+  state.lastWrong   = null;
   const country = state.session[state.index];
 
   document.getElementById('tb-count').textContent = `${state.index + 1} / ${state.session.length}`;
@@ -374,11 +389,15 @@ function handleClick(clickedCode) {
   if (correct) {
     state.score   += 1;
     state.correct += 1;
-    setRegionFill(country.code, '#22c55e');
+    state.lastCorrect = country.code;
+    state.lastWrong   = null;
+    setLocCorrect(country.code);
     showFeedback(true,  '✅ Bonne réponse !', '');
   } else {
-    setRegionFill(country.code, '#22c55e');  // correct en vert
-    setRegionFill(clickedCode,  '#ef4444');  // cliqué en rouge
+    state.lastCorrect = country.code;
+    state.lastWrong   = clickedCode;
+    setLocCorrect(country.code);          // correct en vert
+    setLocWrong(clickedCode);             // cliqué en rouge
     const clickedName = COUNTRIES.find(c => c.code === clickedCode)?.name || clickedCode;
     showFeedback(false, '❌ Raté !', `C'était ${country.name}. Tu as cliqué : ${clickedName}`);
   }
