@@ -147,15 +147,39 @@ const ALIASES = {
 };
 
 // ─── CHARGER LE GEOJSON ──────────────────────────────────────────
+const GEOJSON_URLS = [
+  'https://cdn.jsdelivr.net/gh/datasets/geo-countries/data/countries.geojson',
+  'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson',
+];
+
+let geoLoading = false;
+let geoLoaded = false;
+let geoError = false;
+
 async function loadGeoJSON() {
-  try {
-    const resp = await fetch(
-      'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson'
-    );
-    const data = await resp.json();
-    buildMap(data);
-  } catch (e) {
-    console.error('GeoJSON load error', e);
+  geoLoading = true;
+  for (const url of GEOJSON_URLS) {
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      buildMap(data);
+      geoLoaded = true;
+      geoLoading = false;
+      const btn = document.getElementById('btn-start-map');
+      if (btn) { btn.textContent = "C'est parti ! 🚀"; btn.disabled = false; }
+      return;
+    } catch (e) {
+      console.warn('GeoJSON failed:', url, e);
+    }
+  }
+  // Toutes les URLs ont échoué
+  geoLoading = false;
+  geoError = true;
+  const btn = document.getElementById('btn-start-map');
+  if (btn) {
+    btn.textContent = '❌ Erreur de chargement — vérifiez votre connexion';
+    btn.disabled = true;
   }
 }
 
@@ -245,16 +269,25 @@ function shuffle(arr) {
 }
 
 window.startGame = function() {
-  if (Object.keys(layerByCode).length === 0) {
-    // GeoJSON pas encore chargé — attendre
-    document.querySelector('.btn-ov-primary').textContent = '⏳ Chargement de la carte…';
+  if (geoError) return;
+  if (!geoLoaded) {
+    const btn = document.getElementById('btn-start-map');
+    if (btn) btn.textContent = '⏳ Chargement de la carte…';
+    let attempts = 0;
     const wait = setInterval(() => {
-      if (Object.keys(layerByCode).length > 0) {
+      attempts++;
+      if (geoLoaded) {
         clearInterval(wait);
-        document.querySelector('.btn-ov-primary').textContent = 'C\'est parti ! 🚀';
+        if (btn) btn.textContent = "C'est parti ! 🚀";
         window.startGame();
+      } else if (geoError || attempts > 30) {
+        clearInterval(wait);
+        if (btn) {
+          btn.textContent = '❌ Impossible de charger la carte';
+          btn.disabled = true;
+        }
       }
-    }, 300);
+    }, 500);
     return;
   }
 
@@ -414,6 +447,8 @@ window.goHome = function() {
   document.getElementById('map-feedback').style.display = 'none';
   document.getElementById('btn-map-next').style.display = 'none';
   document.getElementById('screen-home').classList.remove('hidden');
+  const btn = document.getElementById('btn-start-map');
+  if (btn && geoLoaded) { btn.textContent = "C'est parti ! 🚀"; btn.disabled = false; }
   if (geojsonLayer) {
     const isDark = getTheme() === 'dark';
     geojsonLayer.setStyle(countryStyle(isDark));
