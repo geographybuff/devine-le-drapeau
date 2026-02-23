@@ -78,10 +78,11 @@ const COUNTRIES = [
 ];
 
 // ─── UTILITAIRES ─────────────────────────────────────────────────
-function flagEmoji(code) {
-  return [...code.toUpperCase()].map(c =>
-    String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)
-  ).join('');
+function flagImg(code) {
+  return `<img src="https://flagcdn.com/w160/${code.toLowerCase()}.png"
+    srcset="https://flagcdn.com/w320/${code.toLowerCase()}.png 2x"
+    style="max-width:180px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.25);"
+    alt="drapeau"/>`;
 }
 
 function randomCode() {
@@ -301,7 +302,7 @@ function handleRoomUpdate(data) {
 function renderQuestion(q, idx, total) {
   document.getElementById('q-counter').textContent = `Question ${idx + 1}/${total}`;
   document.getElementById('progress-fill').style.width = `${((idx + 1) / total) * 100}%`;
-  document.getElementById('flag-display').textContent = flagEmoji(q.code);
+  document.getElementById('flag-display').innerHTML = flagImg(q.code);
   document.getElementById('question-text').textContent = '🌍 Quel est ce pays ?';
   document.getElementById('waiting-msg').textContent = '';
 
