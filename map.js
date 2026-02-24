@@ -201,6 +201,9 @@ function initMap() {
     map: 'world',
     backgroundColor: bgColor(),
     zoomButtons: true,
+    zoomOnScroll: true,
+    zoomMax: 24,          // défaut ≈ 8, on monte à 24 pour + de zoom sur mobile
+    zoomStep: 1.5,        // chaque clic +/− zoome de 50 %
     selectable: false,
     regionStyle: {
       initial:  { fill: fillColor(), stroke: borderColor(), strokeWidth: 0.5, fillOpacity: 1 },

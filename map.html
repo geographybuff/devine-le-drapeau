@@ -175,6 +175,15 @@
     :root:not([data-theme="light"]) #map{background:#0d1627;}
     :root[data-theme="light"] #map{background:#c8d8f0;}
 
+    /* Boutons zoom plus grands sur mobile */
+    @media(max-width:768px){
+      .jvm-zoom-btn{
+        width:40px!important;height:40px!important;
+        font-size:1.4rem!important;line-height:40px!important;
+        border-radius:10px!important;
+      }
+    }
+
     @media(max-width:500px){
       #game-screen{top:80px;}
     }
