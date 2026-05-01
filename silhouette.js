@@ -365,6 +365,8 @@ function handleAnswer(clicked, correctCode) {
 
   const isCorrect = clicked === correctCode;
 
+  if (isCorrect) window.playCorrect?.(); else window.playWrong?.();
+
   if (isCorrect) {
     state.score++;
     state.correct++;

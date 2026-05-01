@@ -237,8 +237,18 @@
   text-align: right;
   flex-shrink: 0;
 }
-.weak-flag { font-size: 1.35rem; flex-shrink: 0; line-height: 1; }
-.weak-name { flex: 1; font-weight: 600; font-size: .88rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.weak-flag-img {
+  width: 32px;
+  height: auto;
+  border-radius: 3px;
+  flex-shrink: 0;
+  object-fit: cover;
+  aspect-ratio: 4/3;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+.weak-name-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.weak-name { font-weight: 600; font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.weak-capital { font-size: .72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .weak-bar-wrap {
   width: 80px;
   height: 6px;
@@ -252,6 +262,10 @@
   background: var(--err);
   transition: width .4s ease;
 }
+.weak-bar-high { background: var(--err); }
+.weak-bar-mid  { background: var(--warn); }
+.weak-bar-low  { background: #60a5fa; }
+
 .weak-pct {
   font-size: .8rem;
   color: var(--err);
@@ -260,6 +274,9 @@
   text-align: right;
   flex-shrink: 0;
 }
+.weak-pct-high { color: var(--err); }
+.weak-pct-mid  { color: var(--warn); }
+.weak-pct-low  { color: #60a5fa; }
 .weak-attempts {
   font-size: .75rem;
   color: var(--muted);

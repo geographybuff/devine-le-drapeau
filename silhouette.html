@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Silhouette — Quiz Géographie</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="theme.js"></script>
+  <script src="audio.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box}
+    body{margin:0;padding:0;font-family:'Inter',sans-serif;
+      background:var(--bg);color:var(--text);height:100vh;overflow:hidden;}
+
+    /* ─── ÉCRANS PLEIN ÉCRAN ─── */
+    .fs-screen{
+      position:fixed;inset:0;z-index:900;
+      display:flex;align-items:center;justify-content:center;
+      background:var(--bg);
+    }
+    .fs-screen.hidden{display:none!important;}
+
+    /* ─── CARD ─── */
+    .card{
+      background:var(--bg-card);border:1px solid var(--border);
+      border-radius:22px;padding:2.2rem 2rem;
+      width:90%;max-width:440px;
+      display:flex;flex-direction:column;gap:1.1rem;
+      box-shadow:0 8px 40px rgba(0,0,0,.18);
+    }
+    .card-emoji{text-align:center;font-size:3rem;}
+    .card-title{font-size:1.55rem;font-weight:800;text-align:center;color:var(--text)!important;}
+    .card-title span{color:#a855f7!important;}
+    .card-sub{text-align:center;color:var(--text-secondary)!important;font-size:.92rem;}
+    .score-big{text-align:center;font-size:2.4rem;font-weight:800;color:var(--text)!important;}
+    .score-big small{font-size:1.1rem;font-weight:500;color:var(--text-secondary)!important;}
+    .detail-text{text-align:center;color:var(--text-secondary)!important;font-size:.9rem;}
+
+    /* ─── BUTTONS ─── */
+    .btn{padding:.82rem;border-radius:12px;font-size:1rem;font-weight:700;
+      border:none;cursor:pointer;font-family:'Inter',sans-serif;
+      transition:opacity .18s,background .18s;width:100%;}
+    .btn-primary{background:#a855f7!important;color:#fff!important;}
+    .btn-primary:hover{opacity:.88;}
+    .btn-secondary{background:transparent!important;color:var(--text)!important;
+      border:2px solid var(--border)!important;}
+    .btn-secondary:hover{background:var(--border)!important;}
+    .btn-ghost{background:none!important;border:none!important;color:var(--text-secondary)!important;
+      font-size:.9rem;cursor:pointer;font-family:'Inter',sans-serif;padding:.4rem;}
+    .btn-ghost:hover{color:#a855f7!important;}
+
+    /* ─── SECTION LABEL ─── */
+    .section-lbl{font-size:.78rem;font-weight:700;color:var(--text-secondary)!important;
+      text-transform:uppercase;letter-spacing:.06em;text-align:center;}
+
+    /* ─── CHIPS ─── */
+    .chip-row{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:center;}
+    .chip{
+      padding:.38rem .82rem;border-radius:99px;
+      border:2px solid var(--border);background:var(--bg);
+      font-size:.82rem;font-weight:600;cursor:pointer;
+      color:var(--text)!important;font-family:'Inter',sans-serif;
+      transition:border-color .18s,background .18s,color .18s;
+    }
+    .chip:hover,.chip.on{
+      border-color:#a855f7!important;
+      background:#a855f715!important;
+      color:#a855f7!important;
+    }
+
+    /* ─── TOP BAR JEU ─── */
+    #topbar{
+      position:fixed;top:0;left:0;right:0;z-index:800;
+      padding:.55rem 1rem .4rem;background:var(--bg-card);
+      border-bottom:1px solid var(--border);
+      display:flex;flex-direction:column;gap:.25rem;
+    }
+    #topbar.hidden{display:none!important;}
+    .tb-row1{display:flex;align-items:center;gap:.7rem;width:100%;}
+    #tb-q{
+      width:100%;font-size:.98rem;font-weight:700;
+      color:var(--text)!important;text-align:center;
+      padding:.15rem 0 .05rem;
+      white-space:normal;word-break:break-word;
+    }
+    .tb-badge{background:#a855f7;color:#fff!important;font-size:.7rem;font-weight:700;
+      padding:.2rem .6rem;border-radius:99px;white-space:nowrap;}
+    #tb-count{font-size:.8rem;font-weight:600;color:var(--text-secondary)!important;white-space:nowrap;margin-left:auto;}
+    .pbar-wrap{width:70px;height:5px;border-radius:99px;background:var(--border);overflow:hidden;flex-shrink:0;}
+    #pbar{height:100%;border-radius:99px;background:#a855f7;transition:width .4s;}
+    #tb-score{font-size:.88rem;font-weight:800;color:#a855f7!important;white-space:nowrap;}
+    #btn-quit{background:none;border:none;cursor:pointer;font-size:1.1rem;
+      color:var(--text-secondary);padding:.2rem .4rem;border-radius:6px;flex-shrink:0;}
+    #btn-quit:hover{color:#ef4444;}
+
+    /* ─── ÉCRAN CARTE ─── */
+    #game-screen{
+      position:fixed;top:80px;left:0;right:0;bottom:0;z-index:700;
+      display:flex;flex-direction:column;
+    }
+    #game-screen.hidden{display:none!important;}
+
+    /* map prend l'espace restant au-dessus du panel */
+    #map{flex:1;min-height:0;}
+
+    /* ─── PANEL RÉPONSES ─── */
+    #answer-panel{
+      flex-shrink:0;
+      background:var(--bg-card);
+      border-top:1px solid var(--border);
+      padding:.6rem .7rem .7rem;
+      z-index:1000;
+    }
+    #answer-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:.5rem;
+    }
+    .ans-btn{
+      padding:.7rem .5rem;border-radius:12px;font-size:.88rem;font-weight:700;
+      border:2px solid var(--border);background:var(--bg);
+      color:var(--text)!important;cursor:pointer;font-family:'Inter',sans-serif;
+      transition:border-color .18s,background .18s,color .18s,opacity .18s;
+      line-height:1.25;text-align:center;
+    }
+    .ans-btn:hover:not(:disabled){
+      border-color:#a855f7!important;
+      background:#a855f715!important;
+      color:#a855f7!important;
+    }
+    .ans-btn:disabled{cursor:default;opacity:.75;}
+    .ans-btn.correct{border-color:#22c55e!important;background:#22c55e20!important;color:#22c55e!important;}
+    .ans-btn.wrong  {border-color:#ef4444!important;background:#ef444420!important;color:#ef4444!important;}
+
+    /* ─── BTN NEXT ─── */
+    #btn-next{
+      display:none;
+      width:calc(100% - 1.4rem);margin:.5rem .7rem 0;
+      padding:.75rem;background:#a855f7;color:#fff;
+      border:none;border-radius:12px;font-size:.95rem;font-weight:700;
+      cursor:pointer;font-family:'Inter',sans-serif;
+    }
+    #btn-next:hover{opacity:.9;}
+
+    /* ─── jsvectormap tweaks ─── */
+    .jvm-zoom-btn{color:#fff!important;}
+    :root:not([data-theme="light"]) #map{background:#0d1627;}
+    :root[data-theme="light"] #map{background:#c8d8f0;}
+
+    @media(max-width:500px){
+      #game-screen{top:80px;}
+      .ans-btn{font-size:.8rem;padding:.6rem .4rem;}
+    }
+  </style>
+</head>
+<body>
+<button id="theme-toggle" class="theme-toggle" style="z-index:9999;" title="Changer de thème">🌙</button>
+
+<!-- ═══ ACCUEIL ═══ -->
+<div class="fs-screen" id="screen-home">
+  <div class="card">
+    <div class="card-emoji">🔍</div>
+    <div class="card-title">Sil<span>houette</span></div>
+    <div class="card-sub">Reconnaissez le pays en violet d'après sa forme ! Choisissez parmi 4 propositions.</div>
+
+    <div>
+      <div class="section-lbl" style="margin-bottom:.45rem;">Région</div>
+      <div class="chip-row" id="cont-chips"></div>
+    </div>
+
+    <div>
+      <div class="section-lbl" style="margin-bottom:.45rem;">Questions</div>
+      <div class="chip-row" id="q-chips"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="startGame()">C'est parti ! 🚀</button>
+    <button class="btn btn-ghost" onclick="location.href='index.html'">← Retour à l'accueil</button>
+  </div>
+</div>
+
+<!-- ═══ TOP BAR JEU ═══ -->
+<div id="topbar" class="hidden">
+  <div class="tb-row1">
+    <span class="tb-badge">🔍 Silhouette</span>
+    <span id="tb-count">0/0</span>
+    <div class="pbar-wrap"><div id="pbar" style="width:0%"></div></div>
+    <span id="tb-score">0 pts</span>
+    <button id="btn-quit" onclick="goHome()" title="Quitter">✕</button>
+  </div>
+  <span id="tb-q">De quel pays s'agit-il ?</span>
+</div>
+
+<!-- ═══ ÉCRAN CARTE + RÉPONSES ═══ -->
+<div id="game-screen" class="hidden">
+  <div id="map"></div>
+  <div id="answer-panel">
+    <div id="answer-grid">
+      <!-- Boutons injectés dynamiquement -->
+    </div>
+    <button id="btn-next" onclick="nextQuestion()">Question suivante →</button>
+  </div>
+</div>
+
+<!-- ═══ RÉSULTAT ═══ -->
+<div class="fs-screen hidden" id="screen-result">
+  <div class="card">
+    <div class="card-emoji" id="res-emoji">🎉</div>
+    <div class="card-title">Résultat</div>
+    <div class="score-big"><span id="res-pts">0</span> <small>pts</small></div>
+    <div class="score-big" style="font-size:1.4rem;margin-top:-.5rem;">
+      <span id="res-correct">0</span> <small>/ <span id="res-total">10</span> correctes</small>
+    </div>
+    <div class="detail-text" id="res-detail">—</div>
+    <button class="btn btn-primary" onclick="startGame()">Rejouer 🔄</button>
+    <button class="btn btn-secondary" onclick="goHome()">Changer de réglages</button>
+    <button class="btn btn-ghost" onclick="location.href='index.html'">← Retour à l'accueil</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/js/jsvectormap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/maps/world.js"></script>
+<script src="silhouette.js"></script>
+</body>
+</html>

@@ -464,6 +464,66 @@ h2{font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
 .btn-stats-link{display:inline-block;margin-top:10px;color:var(--accent);font-size:.85rem;font-weight:600;text-decoration:none;opacity:.75}
 .btn-stats-link:hover{opacity:1;text-decoration:underline}
 
+/* ======================================================
+   GAME TILES — système de couleur par data-game
+   Remplace les inline styles de index.html
+====================================================== */
+.game-tile[data-game="flags"]      { --tile-color:#3b82f6; --tile-bg:rgba(59,130,246,.09); --tile-bd:rgba(59,130,246,.28); }
+.game-tile[data-game="capitals"]   { --tile-color:#f97316; --tile-bg:rgba(249,115,22,.09); --tile-bd:rgba(249,115,22,.28); }
+.game-tile[data-game="duel"]       { --tile-color:#f59e0b; --tile-bg:rgba(245,158,11,.09); --tile-bd:rgba(245,158,11,.28); }
+.game-tile[data-game="crossmodes"] { --tile-color:#06b6d4; --tile-bg:rgba(6,182,212,.09);  --tile-bd:rgba(6,182,212,.28);  }
+.game-tile[data-game="map"]        { --tile-color:#22c55e; --tile-bg:rgba(34,197,94,.09);  --tile-bd:rgba(34,197,94,.28);  }
+.game-tile[data-game="silhouette"] { --tile-color:#a855f7; --tile-bg:rgba(168,85,247,.09); --tile-bd:rgba(168,85,247,.28); }
+
+.game-tile[data-game] {
+  border-color: var(--tile-color, var(--border));
+  background: linear-gradient(135deg, var(--bg-card2) 80%, var(--tile-bg, transparent));
+}
+.game-tile[data-game]:hover { border-color: var(--tile-color, var(--accent)); background: linear-gradient(135deg, var(--bg-card2) 60%, var(--tile-bg, transparent)); }
+.game-tile[data-game] .game-tile-name { color: var(--tile-color, var(--text)); }
+.game-tile[data-game] .gtag {
+  background: var(--tile-bg, rgba(108,99,255,.14));
+  border: 1px solid var(--tile-bd, rgba(108,99,255,.22));
+  color: var(--tile-color, var(--accent));
+}
+
+/* ======================================================
+   PROGRESS DOTS — indicateurs par question
+====================================================== */
+.progress-dots {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.pdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  transition: background .25s ease, border-color .25s ease;
+  flex-shrink: 0;
+}
+.pdot.correct  { background: var(--ok);  border-color: var(--ok);  }
+.pdot.incorrect{ background: var(--err); border-color: var(--err); }
+.pdot.current  { border-color: var(--accent); background: rgba(108,99,255,.18); }
+
+/* ======================================================
+   QUESTION TRANSITION — animation entre questions
+====================================================== */
+@keyframes qFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes qFadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-7px); }
+}
+.question-area.q-out { animation: qFadeOut .15s ease forwards; pointer-events: none; }
+.question-area.q-in  { animation: qFadeIn .22s ease both; }
+
 @media(max-width:400px){
   body{padding:8px}
   .welcome-card,.selection-wrapper,.game-wrapper,.results-card{padding:20px 14px}

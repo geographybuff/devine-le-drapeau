@@ -191,10 +191,14 @@ function computeWeak(history, game) {
     .slice(0, 25);
 }
 
-function flagEmoji(code) {
-  return code.toUpperCase().split("").map(c =>
-    String.fromCodePoint(127397 + c.charCodeAt(0))
-  ).join("");
+function getFlagUrl(code) {
+  return `https://flagcdn.com/w40/${code}.png`;
+}
+
+function getCapital(code) {
+  if (!window.WORLD_COUNTRIES) return "";
+  const c = WORLD_COUNTRIES.find(x => x.code === code);
+  return c ? c.capital : "";
 }
 
 let activeWeakGame = "flags";
@@ -217,17 +221,29 @@ function buildWeakList(history) {
   }
   empty.classList.add("hidden");
 
-  list.innerHTML = items.map((item, i) => `
+  const showCapital = activeWeakGame === "capitals";
+
+  list.innerHTML = items.map((item, i) => {
+    const capital = showCapital ? getCapital(item.code) : "";
+    const subtitle = capital
+      ? `<span class="weak-capital">${capital}</span>`
+      : "";
+    const severity = item.pct >= 75 ? "high" : item.pct >= 40 ? "mid" : "low";
+    return `
     <div class="weak-item">
       <span class="weak-rank">${i + 1}</span>
-      <span class="weak-flag">${flagEmoji(item.code)}</span>
-      <span class="weak-name">${item.name}</span>
+      <img class="weak-flag-img" src="${getFlagUrl(item.code)}" alt="${item.name}"
+           onerror="this.style.display='none'" loading="lazy" />
+      <span class="weak-name-wrap">
+        <span class="weak-name">${item.name}</span>${subtitle}
+      </span>
       <div class="weak-bar-wrap">
-        <div class="weak-bar-fill" style="width:${item.pct}%"></div>
+        <div class="weak-bar-fill weak-bar-${severity}" style="width:${item.pct}%"></div>
       </div>
-      <span class="weak-pct">${item.pct}%</span>
+      <span class="weak-pct weak-pct-${severity}">${item.pct}%</span>
       <span class="weak-attempts">${item.wrong}✗/${item.total}</span>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 }
 
 // ─────────────────────────────────────────────────────────────────

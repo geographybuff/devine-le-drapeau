@@ -5,216 +5,9 @@
 ================================================================ */
 
 // ─────────────────────────────────────────────────────────────────
-//  COUNTRIES  (195 pays ONU, code ISO 3166-1 α-2 + continent)
-//  Continents : af=Afrique, am=Amériques, as=Asie, eu=Europe, oc=Océanie
+//  COUNTRIES — dérivé de WORLD_COUNTRIES (countries.js) + États US
 // ─────────────────────────────────────────────────────────────────
-const COUNTRIES = [
-  // ── AFRIQUE (54) ──────────────────────────────────────────────
-  {code:"dz",name:"Algérie",c:"af"},
-  {code:"ao",name:"Angola",c:"af"},
-  {code:"bj",name:"Bénin",c:"af"},
-  {code:"bw",name:"Botswana",c:"af"},
-  {code:"bf",name:"Burkina Faso",c:"af"},
-  {code:"bi",name:"Burundi",c:"af"},
-  {code:"cv",name:"Cap-Vert",c:"af"},
-  {code:"cm",name:"Cameroun",c:"af"},
-  {code:"cf",name:"République centrafricaine",c:"af"},
-  {code:"td",name:"Tchad",c:"af"},
-  {code:"km",name:"Comores",c:"af"},
-  {code:"cg",name:"République du Congo",c:"af"},
-  {code:"cd",name:"R.D. du Congo",c:"af"},
-  {code:"dj",name:"Djibouti",c:"af"},
-  {code:"eg",name:"Égypte",c:"af"},
-  {code:"gq",name:"Guinée équatoriale",c:"af"},
-  {code:"er",name:"Érythrée",c:"af"},
-  {code:"sz",name:"Eswatini",c:"af"},
-  {code:"et",name:"Éthiopie",c:"af"},
-  {code:"ga",name:"Gabon",c:"af"},
-  {code:"gm",name:"Gambie",c:"af"},
-  {code:"gh",name:"Ghana",c:"af"},
-  {code:"gn",name:"Guinée",c:"af"},
-  {code:"gw",name:"Guinée-Bissau",c:"af"},
-  {code:"ci",name:"Côte d'Ivoire",c:"af"},
-  {code:"ke",name:"Kenya",c:"af"},
-  {code:"ls",name:"Lesotho",c:"af"},
-  {code:"lr",name:"Libéria",c:"af"},
-  {code:"ly",name:"Libye",c:"af"},
-  {code:"mg",name:"Madagascar",c:"af"},
-  {code:"mw",name:"Malawi",c:"af"},
-  {code:"ml",name:"Mali",c:"af"},
-  {code:"mr",name:"Mauritanie",c:"af"},
-  {code:"mu",name:"Maurice",c:"af"},
-  {code:"ma",name:"Maroc",c:"af"},
-  {code:"mz",name:"Mozambique",c:"af"},
-  {code:"na",name:"Namibie",c:"af"},
-  {code:"ne",name:"Niger",c:"af"},
-  {code:"ng",name:"Nigeria",c:"af"},
-  {code:"rw",name:"Rwanda",c:"af"},
-  {code:"st",name:"Sao Tomé-et-Principe",c:"af"},
-  {code:"sn",name:"Sénégal",c:"af"},
-  {code:"sc",name:"Seychelles",c:"af"},
-  {code:"sl",name:"Sierra Leone",c:"af"},
-  {code:"so",name:"Somalie",c:"af"},
-  {code:"za",name:"Afrique du Sud",c:"af"},
-  {code:"ss",name:"Soudan du Sud",c:"af"},
-  {code:"sd",name:"Soudan",c:"af"},
-  {code:"tz",name:"Tanzanie",c:"af"},
-  {code:"tg",name:"Togo",c:"af"},
-  {code:"tn",name:"Tunisie",c:"af"},
-  {code:"ug",name:"Ouganda",c:"af"},
-  {code:"zm",name:"Zambie",c:"af"},
-  {code:"zw",name:"Zimbabwe",c:"af"},
-
-  // ── AMÉRIQUES (35) ────────────────────────────────────────────
-  {code:"ag",name:"Antigua-et-Barbuda",c:"am"},
-  {code:"ar",name:"Argentine",c:"am"},
-  {code:"bs",name:"Bahamas",c:"am"},
-  {code:"bb",name:"Barbade",c:"am"},
-  {code:"bz",name:"Belize",c:"am"},
-  {code:"bo",name:"Bolivie",c:"am"},
-  {code:"br",name:"Brésil",c:"am"},
-  {code:"ca",name:"Canada",c:"am"},
-  {code:"cl",name:"Chili",c:"am"},
-  {code:"co",name:"Colombie",c:"am"},
-  {code:"cr",name:"Costa Rica",c:"am"},
-  {code:"cu",name:"Cuba",c:"am"},
-  {code:"dm",name:"Dominique",c:"am"},
-  {code:"do",name:"République dominicaine",c:"am"},
-  {code:"ec",name:"Équateur",c:"am"},
-  {code:"sv",name:"Salvador",c:"am"},
-  {code:"gd",name:"Grenade",c:"am"},
-  {code:"gt",name:"Guatemala",c:"am"},
-  {code:"gy",name:"Guyana",c:"am"},
-  {code:"ht",name:"Haïti",c:"am"},
-  {code:"hn",name:"Honduras",c:"am"},
-  {code:"jm",name:"Jamaïque",c:"am"},
-  {code:"mx",name:"Mexique",c:"am"},
-  {code:"ni",name:"Nicaragua",c:"am"},
-  {code:"pa",name:"Panama",c:"am"},
-  {code:"py",name:"Paraguay",c:"am"},
-  {code:"pe",name:"Pérou",c:"am"},
-  {code:"kn",name:"Saint-Kitts-et-Nevis",c:"am"},
-  {code:"lc",name:"Sainte-Lucie",c:"am"},
-  {code:"vc",name:"Saint-Vincent-et-les-Grenadines",c:"am"},
-  {code:"sr",name:"Suriname",c:"am"},
-  {code:"tt",name:"Trinité-et-Tobago",c:"am"},
-  {code:"us",name:"États-Unis",c:"am"},
-  {code:"uy",name:"Uruguay",c:"am"},
-  {code:"ve",name:"Venezuela",c:"am"},
-
-  // ── ASIE (48) ─────────────────────────────────────────────────
-  {code:"af",name:"Afghanistan",c:"as"},
-  {code:"am",name:"Arménie",c:"as"},
-  {code:"az",name:"Azerbaïdjan",c:"as"},
-  {code:"bh",name:"Bahreïn",c:"as"},
-  {code:"bd",name:"Bangladesh",c:"as"},
-  {code:"bt",name:"Bhoutan",c:"as"},
-  {code:"bn",name:"Brunéi",c:"as"},
-  {code:"kh",name:"Cambodge",c:"as"},
-  {code:"cn",name:"Chine",c:"as"},
-  {code:"cy",name:"Chypre",c:"as"},
-  {code:"ge",name:"Géorgie",c:"as"},
-  {code:"in",name:"Inde",c:"as"},
-  {code:"id",name:"Indonésie",c:"as"},
-  {code:"ir",name:"Iran",c:"as"},
-  {code:"iq",name:"Irak",c:"as"},
-  {code:"il",name:"Israël",c:"as"},
-  {code:"jp",name:"Japon",c:"as"},
-  {code:"jo",name:"Jordanie",c:"as"},
-  {code:"kz",name:"Kazakhstan",c:"as"},
-  {code:"kw",name:"Koweït",c:"as"},
-  {code:"kg",name:"Kirghizistan",c:"as"},
-  {code:"la",name:"Laos",c:"as"},
-  {code:"lb",name:"Liban",c:"as"},
-  {code:"my",name:"Malaisie",c:"as"},
-  {code:"mv",name:"Maldives",c:"as"},
-  {code:"mn",name:"Mongolie",c:"as"},
-  {code:"mm",name:"Myanmar",c:"as"},
-  {code:"np",name:"Népal",c:"as"},
-  {code:"kp",name:"Corée du Nord",c:"as"},
-  {code:"om",name:"Oman",c:"as"},
-  {code:"pk",name:"Pakistan",c:"as"},
-  {code:"ph",name:"Philippines",c:"as"},
-  {code:"qa",name:"Qatar",c:"as"},
-  {code:"sa",name:"Arabie saoudite",c:"as"},
-  {code:"sg",name:"Singapour",c:"as"},
-  {code:"kr",name:"Corée du Sud",c:"as"},
-  {code:"lk",name:"Sri Lanka",c:"as"},
-  {code:"sy",name:"Syrie",c:"as"},
-  {code:"tw",name:"Taïwan",c:"as"},
-  {code:"tj",name:"Tadjikistan",c:"as"},
-  {code:"th",name:"Thaïlande",c:"as"},
-  {code:"tl",name:"Timor oriental",c:"as"},
-  {code:"tm",name:"Turkménistan",c:"as"},
-  {code:"ae",name:"Émirats arabes unis",c:"as"},
-  {code:"uz",name:"Ouzbékistan",c:"as"},
-  {code:"vn",name:"Viêt Nam",c:"as"},
-  {code:"ye",name:"Yémen",c:"as"},
-  {code:"ps",name:"Palestine",c:"as"},
-
-  // ── EUROPE (44) ───────────────────────────────────────────────
-  {code:"al",name:"Albanie",c:"eu"},
-  {code:"ad",name:"Andorre",c:"eu"},
-  {code:"at",name:"Autriche",c:"eu"},
-  {code:"by",name:"Biélorussie",c:"eu"},
-  {code:"be",name:"Belgique",c:"eu"},
-  {code:"ba",name:"Bosnie-Herzégovine",c:"eu"},
-  {code:"bg",name:"Bulgarie",c:"eu"},
-  {code:"hr",name:"Croatie",c:"eu"},
-  {code:"cz",name:"Tchéquie",c:"eu"},
-  {code:"dk",name:"Danemark",c:"eu"},
-  {code:"ee",name:"Estonie",c:"eu"},
-  {code:"fi",name:"Finlande",c:"eu"},
-  {code:"fr",name:"France",c:"eu"},
-  {code:"de",name:"Allemagne",c:"eu"},
-  {code:"gr",name:"Grèce",c:"eu"},
-  {code:"hu",name:"Hongrie",c:"eu"},
-  {code:"is",name:"Islande",c:"eu"},
-  {code:"ie",name:"Irlande",c:"eu"},
-  {code:"it",name:"Italie",c:"eu"},
-  {code:"lv",name:"Lettonie",c:"eu"},
-  {code:"li",name:"Liechtenstein",c:"eu"},
-  {code:"lt",name:"Lituanie",c:"eu"},
-  {code:"lu",name:"Luxembourg",c:"eu"},
-  {code:"mt",name:"Malte",c:"eu"},
-  {code:"md",name:"Moldavie",c:"eu"},
-  {code:"mc",name:"Monaco",c:"eu"},
-  {code:"me",name:"Monténégro",c:"eu"},
-  {code:"nl",name:"Pays-Bas",c:"eu"},
-  {code:"mk",name:"Macédoine du Nord",c:"eu"},
-  {code:"no",name:"Norvège",c:"eu"},
-  {code:"pl",name:"Pologne",c:"eu"},
-  {code:"pt",name:"Portugal",c:"eu"},
-  {code:"ro",name:"Roumanie",c:"eu"},
-  {code:"ru",name:"Russie",c:"eu"},
-  {code:"sm",name:"Saint-Marin",c:"eu"},
-  {code:"rs",name:"Serbie",c:"eu"},
-  {code:"sk",name:"Slovaquie",c:"eu"},
-  {code:"si",name:"Slovénie",c:"eu"},
-  {code:"es",name:"Espagne",c:"eu"},
-  {code:"se",name:"Suède",c:"eu"},
-  {code:"ch",name:"Suisse",c:"eu"},
-  {code:"ua",name:"Ukraine",c:"eu"},
-  {code:"gb",name:"Royaume-Uni",c:"eu"},
-  {code:"va",name:"Vatican",c:"eu"},
-
-  // ── OCÉANIE (14) ──────────────────────────────────────────────
-  {code:"au",name:"Australie",c:"oc"},
-  {code:"fj",name:"Fidji",c:"oc"},
-  {code:"ki",name:"Kiribati",c:"oc"},
-  {code:"mh",name:"Îles Marshall",c:"oc"},
-  {code:"fm",name:"Micronésie",c:"oc"},
-  {code:"nr",name:"Nauru",c:"oc"},
-  {code:"nz",name:"Nouvelle-Zélande",c:"oc"},
-  {code:"pw",name:"Palaos",c:"oc"},
-  {code:"pg",name:"Papouasie-Nouvelle-Guinée",c:"oc"},
-  {code:"ws",name:"Samoa",c:"oc"},
-  {code:"sb",name:"Îles Salomon",c:"oc"},
-  {code:"to",name:"Tonga",c:"oc"},
-  {code:"tv",name:"Tuvalu",c:"oc"},
-  {code:"vu",name:"Vanuatu",c:"oc"},
-
-  // ── ÉTATS DES ÉTATS-UNIS (50) ────────────────────────────
+const US_STATES = [
   {code:"us-al",name:"Alabama",c:"us"},
   {code:"us-ak",name:"Alaska",c:"us"},
   {code:"us-az",name:"Arizona",c:"us"},
@@ -265,6 +58,11 @@ const COUNTRIES = [
   {code:"us-wv",name:"Virginie-Occidentale",c:"us"},
   {code:"us-wi",name:"Wisconsin",c:"us"},
   {code:"us-wy",name:"Wyoming",c:"us"},
+];
+
+const COUNTRIES = [
+  ...WORLD_COUNTRIES.map(({code, name, c}) => ({code, name, c})),
+  ...US_STATES,
 ];
 
 // ─────────────────────────────────────────────────────────────────
@@ -545,6 +343,7 @@ function buildModeGrid() {
 // ─────────────────────────────────────────────────────────────────
 function configureGameUI() {
   const m = state.mode;
+  const isFinite = ["classic","hardcore","reverse"].includes(m);
 
   // Zones
   $("zone-standard").classList.toggle("hidden", m === "reverse");
@@ -563,6 +362,18 @@ function configureGameUI() {
 
   // Infini home button
   $("btn-infini-home").classList.toggle("hidden", m !== "infini");
+
+  // Progress dots (modes à 10 questions fixes)
+  const dotsEl = $("progress-dots");
+  dotsEl.innerHTML = "";
+  if (isFinite) {
+    for (let i = 0; i < QUESTIONS_PER_GAME; i++) {
+      const d = document.createElement("span");
+      d.className = "pdot" + (i === 0 ? " current" : "");
+      d.id = "pdot-" + i;
+      dotsEl.appendChild(d);
+    }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -715,6 +526,18 @@ function resolveAnswer(isCorrect, correctName, closEnough = false) {
   state.totalAnswered++;
   state.questionHistory.push({code: state.correctCountry.code, name: state.correctCountry.name, correct: isCorrect});
 
+  // Son de feedback
+  if (isCorrect) window.playCorrect?.(); else window.playWrong?.();
+
+  // Dot de progression
+  const dotEl = $("pdot-" + state.questionIndex);
+  if (dotEl) {
+    dotEl.classList.remove("current");
+    dotEl.classList.add(isCorrect ? "correct" : "incorrect");
+  }
+  const nextDot = $("pdot-" + (state.questionIndex + 1));
+  if (nextDot) nextDot.classList.add("current");
+
   const fb = $("feedback-banner");
 
   if (isCorrect) {
@@ -844,7 +667,21 @@ function nextQuestion() {
 
   state.questionIndex++;
   state.answered = false;
-  buildQuestion(state.questionIndex);
+  transitionTo(state.questionIndex);
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  TRANSITION ENTRE QUESTIONS
+// ─────────────────────────────────────────────────────────────────
+function transitionTo(index) {
+  const area = $("question-area");
+  area.classList.remove("q-in");
+  area.classList.add("q-out");
+  setTimeout(() => {
+    area.classList.remove("q-out");
+    buildQuestion(index);
+    area.classList.add("q-in");
+  }, 160);
 }
 
 $("btn-next").addEventListener("click", nextQuestion);
