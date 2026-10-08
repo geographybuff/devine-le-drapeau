@@ -21,7 +21,7 @@ window.WORLD_COUNTRIES = [
   {code:"cd",name:"R.D. du Congo",capital:"Kinshasa",c:"af"},
   {code:"dj",name:"Djibouti",capital:"Djibouti",c:"af"},
   {code:"eg",name:"Égypte",capital:"Le Caire",c:"af"},
-  {code:"gq",name:"Guinée équatoriale",capital:"Malabo",c:"af"},
+  {code:"gq",name:"Guinée équatoriale",capital:"Ciudad de la Paz",c:"af"},
   {code:"er",name:"Érythrée",capital:"Asmara",c:"af"},
   {code:"sz",name:"Eswatini",capital:"Mbabane",c:"af"},
   {code:"et",name:"Éthiopie",capital:"Addis-Abeba",c:"af"},
